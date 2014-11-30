@@ -99,6 +99,9 @@
     <None Include="Resources\1.ico" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Plink\PLINK.EXE">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="ToDo.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
