@@ -34,7 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>Resources\1.ico</ApplicationIcon>
+    <ApplicationIcon>Resources\main.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualBasic" />
@@ -102,6 +102,12 @@
     <Content Include="Plink\PLINK.EXE">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="Resources\icon.ico" />
+    <None Include="Resources\main.ico" />
+    <None Include="Resources\tray.error.ico" />
+    <None Include="Resources\tray.ok.ico" />
+    <None Include="Resources\tray.processing.ico" />
+    <None Include="Resources\tray.stopped.ico" />
     <Content Include="ToDo.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

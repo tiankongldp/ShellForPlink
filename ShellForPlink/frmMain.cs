@@ -36,10 +36,8 @@ namespace ShellForPlink
             notifyicon.Text = "ShellForPlink";
             notifyicon.Visible = true;
             notifyicon.ContextMenuStrip = this.contextMenuStrip2;
-            notifyicon.Icon = Properties.Resources.ico1;
-            this.Icon = Properties.Resources.ico1;
-
-            this.btnCancle.Enabled = false;
+            notifyicon.Icon = Properties.Resources.tray_stopped;
+            this.Icon = Properties.Resources.main;
 
             plink = new Plink();
 
@@ -77,38 +75,6 @@ namespace ShellForPlink
         }
         private void AddEventHandle()
         {
-            this.FormClosing += new FormClosingEventHandler(this.MainForm_OnClosing);
-            //this.SizeChanged += new EventHandler(MainForm_SizeChanged);
-
-            this.chkConfirmBeforeExit.Click += new System.EventHandler(this.chkbox_CheckedChanged);
-            this.chkAutoConnOnStart.Click += new System.EventHandler(this.chkbox_CheckedChanged);
-            this.chkReConnAfterBreak.Click += new System.EventHandler(this.chkbox_CheckedChanged);
-            this.chkUsePrivateKey.Click += new System.EventHandler(this.chkbox_CheckedChanged);
-            this.chkVerboseOutput.Click += new System.EventHandler(this.chkbox_CheckedChanged);
-            this.chkLoopBackPing.Click += new System.EventHandler(this.chkbox_CheckedChanged);
-            this.chkUnlimitReConn.Click += new System.EventHandler(this.chkbox_CheckedChanged);
-            this.chkDynamicSocket.Click += new System.EventHandler(this.chkbox_CheckedChanged);
-            this.chkHidePortConnInfo.Click += new System.EventHandler(this.chkbox_CheckedChanged);
-            this.chkEchoServicePing.Click += new System.EventHandler(this.chkbox_CheckedChanged);
-            this.chkCompress.Click += new System.EventHandler(this.chkbox_CheckedChanged);
-            this.chkNoPrompt.Click += new System.EventHandler(this.chkbox_CheckedChanged);
-
-            this.txtbReConnDelay.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtb_KeyPress);
-            this.txtbDynamicPort.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtb_KeyPress);
-            this.txtbLoopBackPingPort.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtb_KeyPress);
-            this.txtbServerPort.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtb_KeyPress);
-
-            this.btnConnect.Click += new System.EventHandler(this.btnConnect_Click);
-            this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
-            this.btnHide.Click += new System.EventHandler(this.ShowOrHide_Click);
-            this.btnCancle.Click += new System.EventHandler(this.btnCancle_Click);
-
-            this.tsmiExit.Click += new System.EventHandler(this.Exit_Click);
-            this.tsmiShowOrHide.Click += new System.EventHandler(this.ShowOrHide_Click);
-            this.tsmiCreateConfig.Click += new System.EventHandler(this.CreateConfig_Click);
-
-            this.notifyicon.DoubleClick += new System.EventHandler(this.ShowOrHide_Click);
-
             this.plink.ConnectionStateChanged += new ConnectionStateChangeHandler(plink_ConnectionStateChanged);
             this.plink.OutputDataReceived += new DataOutputHandler(this.plink_OutDataRev);
 
@@ -150,6 +116,7 @@ namespace ShellForPlink
                     LockConfigControl(true);
                     PlinkStart = true;
                     this.btnConnect.Text = "断开";
+
                 }
                 else
                 {
@@ -208,6 +175,11 @@ namespace ShellForPlink
         {
             try
             {
+                if (CurPlinkConfig.ConfirmBeforeExit)
+                    if (MessageBox.Show("退出？", "确认", MessageBoxButtons.OKCancel,
+                        MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) != DialogResult.OK)
+                        return;
+
                 this.ExitCommandDoing = true;
                 if (this.PlinkStart)
                     plink.Stop();
@@ -226,25 +198,28 @@ namespace ShellForPlink
         {
             try
             {
+                this.SuspendLayout();
                 if (this.ShowInTaskbar)
                 {
-                    if (this.WindowState == FormWindowState.Minimized)
-                    {
-                        this.WindowState = FormWindowState.Normal;
-                    }
-                    this.Hide();
+                    this.WindowState = FormWindowState.Minimized;
+                    //this.Hide();
+                    this.ShowInTaskbar = !this.ShowInTaskbar;
                     this.tsmiShowOrHide.Text = "显示";
                 }
                 else
                 {
-                    this.Show();
+                    this.WindowState = FormWindowState.Minimized;
+                    this.ShowInTaskbar = !this.ShowInTaskbar;
+                    this.WindowState = FormWindowState.Normal;
                     this.tsmiShowOrHide.Text = "隐藏";
                 }
-                this.ShowInTaskbar = !this.ShowInTaskbar;
+                
                 this.notifyicon.Visible = true;
+                this.ResumeLayout();
             }
             catch (Exception err)
             {
+                this.ResumeLayout();
                 MessageBox.Show(err.Message);
             }
         }
@@ -261,6 +236,24 @@ namespace ShellForPlink
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
+            }
+        }
+
+        //        
+        private void dGrid_KeyDown(object sender, KeyEventArgs e)
+        {
+            try
+            {
+                DataGridView dgrid = (DataGridView)sender;
+                int index = dgrid.CurrentRow.Index;
+                if ((e.KeyCode == Keys.Delete) && (index >= 0))
+                {
+                    dgrid.Rows.RemoveAt(index);
+                }
+            }
+            catch (Exception err)
+            {
+                //MessageBox.Show(err.Message);
             }
         }
 
@@ -285,11 +278,12 @@ namespace ShellForPlink
                 if (chk.Name == this.chkEchoServicePing.Name)
                 {
                     this.chkLoopBackPing.Enabled = !chk.Checked;
+                    this.txtbLoopBackPingPort.Enabled = (chkEchoServicePing.Checked || chkLoopBackPing.Checked);
                 }
                 else if (chk.Name == this.chkLoopBackPing.Name)
                 {
                     this.chkEchoServicePing.Enabled = !chk.Checked;
-                    this.txtbLoopBackPingPort.Enabled = chk.Checked;
+                    this.txtbLoopBackPingPort.Enabled = (chkEchoServicePing.Checked || chkLoopBackPing.Checked);
                 }
                 else if (chk.Name == this.chkReConnAfterBreak.Name)
                 {
@@ -315,13 +309,14 @@ namespace ShellForPlink
         {
             try
             {
-                if (CurPlinkConfig.LoopBackPing && curState == ConnectionStatus.Connected)
+                if (curState == ConnectionStatus.Connected)
                 {
                     this.btnConnect.Enabled = true;
-                    this.btnCancle.Enabled = false;
-
-                    Ping.plinkConfig = CurPlinkConfig;
-                    Ping.Start();
+                    if (CurPlinkConfig.LoopBackPing)
+                    {
+                        Ping.plinkConfig = CurPlinkConfig;
+                        Ping.Start();
+                    }
                 }
                 if (curState == ConnectionStatus.ConnectAborted)
                 {
@@ -329,14 +324,17 @@ namespace ShellForPlink
                     if (CurPlinkConfig.ReConnAfterBreak)
                     {
                         this.btnConnect.Enabled = false;
-                        this.btnCancle.Enabled = true;
                     }
                     else
                     {
                         this.btnConnect.Text = "连接";
-
                     }
                 }
+                if (curState == ConnectionStatus.ReConnecting)
+                {
+                    this.btnConnect.Enabled = false;
+                }
+
             }
             catch (Exception e)
             {
@@ -408,6 +406,25 @@ namespace ShellForPlink
             this.txtbDynamicPort.Text = CurPlinkConfig.DynamicPort.ToString();
             this.txtbDynamicPort.Enabled = CurPlinkConfig.DynamicSocket;
 
+            this.dGridLocal.Rows.Clear();
+            this.dGridRemote.Rows.Clear();
+            for (int i = 0; i < CurPlinkConfig.LocalForward.Count; i++)
+            {
+                this.dGridLocal.Rows.Add();
+                this.dGridLocal.Rows[i].Cells[0].Value = CurPlinkConfig.LocalForward[i].ListenIP;
+                this.dGridLocal.Rows[i].Cells[1].Value = CurPlinkConfig.LocalForward[i].ListenPort;
+                this.dGridLocal.Rows[i].Cells[2].Value = CurPlinkConfig.LocalForward[i].HostIP;
+                this.dGridLocal.Rows[i].Cells[3].Value = CurPlinkConfig.LocalForward[i].HostPort;
+            }
+            for (int i = 0; i < CurPlinkConfig.RemoteForward.Count; i++)
+            {
+                this.dGridRemote.Rows.Add();
+                this.dGridRemote.Rows[i].Cells[0].Value = CurPlinkConfig.RemoteForward[i].ListenIP;
+                this.dGridRemote.Rows[i].Cells[1].Value = CurPlinkConfig.RemoteForward[i].ListenPort;
+                this.dGridRemote.Rows[i].Cells[2].Value = CurPlinkConfig.RemoteForward[i].HostIP;
+                this.dGridRemote.Rows[i].Cells[3].Value = CurPlinkConfig.RemoteForward[i].HostPort;
+            }
+
         }
         private void FillConfigObject()
         {
@@ -435,6 +452,29 @@ namespace ShellForPlink
             CurPlinkConfig.HidePortConnInfo = this.chkHidePortConnInfo.Checked;
             CurPlinkConfig.Compress = this.chkCompress.Checked;
             CurPlinkConfig.NoPrompt = this.chkNoPrompt.Checked;
+
+            CurPlinkConfig.LocalForward.Clear();
+            CurPlinkConfig.RemoteForward.Clear();
+            PortForward pf;
+            for (int i = 0; i < this.dGridLocal.Rows.Count - 1; i++)
+            {
+                pf = new PortForward();
+                pf.ListenIP = this.dGridLocal.Rows[i].Cells[0].Value.ToString();
+                pf.ListenPort = Convert.ToInt32(this.dGridLocal.Rows[i].Cells[1].Value);
+                pf.HostIP = this.dGridLocal.Rows[i].Cells[2].Value.ToString();
+                pf.HostPort = Convert.ToInt32(this.dGridLocal.Rows[i].Cells[3].Value);
+                CurPlinkConfig.LocalForward.Add(pf);
+                
+            }
+            for (int i = 0; i < this.dGridRemote.Rows.Count - 1; i++)
+            {
+                pf = new PortForward();
+                pf.ListenIP = this.dGridRemote.Rows[i].Cells[0].Value.ToString();
+                pf.ListenPort = Convert.ToInt32(this.dGridRemote.Rows[i].Cells[1].Value);
+                pf.HostIP = this.dGridRemote.Rows[i].Cells[2].Value.ToString();
+                pf.HostPort = Convert.ToInt32(this.dGridRemote.Rows[i].Cells[3].Value);
+                CurPlinkConfig.RemoteForward.Add(pf);
+            }
         }
         private void FillMenuStripCfNameList()
         {
@@ -519,7 +559,7 @@ namespace ShellForPlink
 
                 this.chkEchoServicePing.Enabled = !CurPlinkConfig.LoopBackPing;
                 this.chkLoopBackPing.Enabled = !CurPlinkConfig.EchoServicePing;
-                this.txtbLoopBackPingPort.Enabled = CurPlinkConfig.LoopBackPing;
+                this.txtbLoopBackPingPort.Enabled = (CurPlinkConfig.LoopBackPing || CurPlinkConfig.EchoServicePing);
 
                 this.chkDynamicSocket.Enabled = true;
                 this.txtbDynamicPort.Enabled = CurPlinkConfig.DynamicSocket;

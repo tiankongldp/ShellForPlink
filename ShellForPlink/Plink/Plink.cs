@@ -51,6 +51,7 @@ namespace ShellForPlink
 
             ReConnDelayTimer = new Timer();
             ReConnDelayTimer.Enabled = false;
+            ReConnDelayTimer.Interval = 5 * 1000;
             ReConnDelayTimer.Elapsed += new ElapsedEventHandler(ReConnDelayTimer_Elapsed);
 
             this.CurStatus = ConnectionStatus.idle;

@@ -3,6 +3,7 @@ using System.Text;
 using System.CodeDom.Compiler;
 using System.ComponentModel;
 using System.Xml.Serialization;
+using System.Collections.Generic;
 
 namespace ShellForPlink
 {
@@ -29,7 +30,9 @@ namespace ShellForPlink
         private int reConnDelayField = 10;
         private int dynamicPortField = 1080;
         private int loopBackPingPortField = 7070;
-        private string additionalArgsField = "-N -ssh -2";
+        private string additionalArgsField = "-N -ssh -2 -4";
+        private List<PortForward> localForwardField = new List<PortForward>();
+        private List<PortForward> remoteForwardField = new List<PortForward>();
 
         public string ConfigName
         {
@@ -136,6 +139,16 @@ namespace ShellForPlink
             get { return additionalArgsField; }
             set { additionalArgsField = value; }
         }
+        public List<PortForward> LocalForward
+        {
+            get { return localForwardField; }
+            set { localForwardField = value; }
+        }
+        public List<PortForward> RemoteForward
+        {
+            get { return remoteForwardField; }
+            set { remoteForwardField = value; }
+        }
 
         public string FullArgument
         {
@@ -149,6 +162,8 @@ namespace ShellForPlink
                     sbArgs.Append("-ssh ");
                 if (!this.AdditionalArgs.Contains("-2"))
                     sbArgs.Append("-2 ");
+                if (!this.AdditionalArgs.Contains("-4"))
+                    sbArgs.Append("-4 ");
                 //if (this.NoPrompt)
                 //    sbArgs.Append("-batch ");
                 if (this.VerboseOutput)
@@ -156,13 +171,28 @@ namespace ShellForPlink
                 if (this.Compress)
                     sbArgs.Append("-C ");
                 if (this.UsePrivateKey)
-                    sbArgs.Append("-i " + this.ConfigName + ".pk ");
+                    sbArgs.Append("-i " + this.ConfigName + ".ppk ");
                 if (this.DynamicSocket)
-                    sbArgs.Append("-D 127.0.0.1:" + this.DynamicPort + " ");
+                    sbArgs.Append("-D " + this.DynamicPort + " ");
                 if (this.loopBackPingField)
                 {
-                    sbArgs.Append("-L 127.0.0.1:" + this.LoopBackPingPort + ":127.0.0.1:" + this.LoopBackPingPort + " ");
-                    sbArgs.Append("-R 127.0.0.1:" + this.LoopBackPingPort + ":127.0.0.1:" + (this.LoopBackPingPort + 1).ToString() + " ");
+                    sbArgs.Append("-L " + this.LoopBackPingPort + ":127.0.0.1:" + this.LoopBackPingPort + " ");
+                    sbArgs.Append("-R " + this.LoopBackPingPort + ":127.0.0.1:" + (this.LoopBackPingPort + 1).ToString() + " ");
+                }
+                if (this.echoServicePingField)
+                    sbArgs.Append("-L " + this.LoopBackPingPort + ":127.0.0.1:" + this.LoopBackPingPort + " ");
+                for (int i = 0; i < this.localForwardField.Count; i++)
+                {
+                    if ((this.echoServicePingField && localForwardField[i].ListenPort == this.loopBackPingPortField)
+                        || this.loopBackPingField && (localForwardField[i].ListenPort == this.loopBackPingPortField || localForwardField[i].ListenPort == this.loopBackPingPortField + 1))
+                        continue;
+                    sbArgs.Append("-L " + localForwardField[i].ListenIP + ":" + localForwardField[i].ListenPort + ":" + localForwardField[i].HostIP + ":" + localForwardField[i].HostPort + " ");
+                }
+                for (int i = 0; i < this.remoteForwardField.Count; i++)
+                {
+                    if ((this.echoServicePingField && remoteForwardField[i].ListenPort == this.loopBackPingPortField))
+                        continue;
+                    sbArgs.Append("-R " + remoteForwardField[i].ListenIP + ":" + remoteForwardField[i].ListenPort + ":" + remoteForwardField[i].HostIP + ":" + remoteForwardField[i].HostPort + " ");
                 }
                 if (this.ServerPort != 22)
                     sbArgs.Append("-P " + this.ServerPort + " ");

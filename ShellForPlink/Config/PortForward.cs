@@ -8,13 +8,13 @@ namespace ShellForPlink
     [Serializable, GeneratedCode("xsd", "2.0.50727.42"), DesignerCategory("code"), XmlType(AnonymousType=true)]
     public class PortForward
     {
-        private string forwardTypeField;
+        private ForwardType forwardTypeField;
         private string listenIPField;
-        private string listenPortField;
+        private int listenPortField;
         private string hostIPField;
-        private string hostPortField;
+        private int hostPortField;
 
-        public string ForwardType
+        public ForwardType ForwardType
         {
             get { return forwardTypeField; }
             set { forwardTypeField = value; }
@@ -26,7 +26,7 @@ namespace ShellForPlink
             set { listenIPField = value; }
         }
         
-        public string ListenPort
+        public int ListenPort
         {
             get { return listenPortField; }
             set { listenPortField = value; }
@@ -38,10 +38,16 @@ namespace ShellForPlink
             set { hostIPField = value; }
         }
         
-        public string HostPort
+        public int HostPort
         {
             get { return hostPortField; }
             set { hostPortField = value; }
         }
+    }
+
+    public enum ForwardType
+    {
+        Local,
+        Remote
     }
 }
