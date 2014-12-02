@@ -3,6 +3,7 @@ using System.Timers;
 using System.Diagnostics;
 using System.Net.Sockets;
 using System.Text;
+using System.IO;
 
 namespace ShellForPlink
 {
@@ -15,6 +16,8 @@ namespace ShellForPlink
             set { mPlinkCf = value; }
         }
 
+        public string StartupPath = "";
+
         private Process mPlinkProcess;
 
         private ConnectionStatus curStatus;
@@ -25,10 +28,6 @@ namespace ShellForPlink
         }
         private ConnectionStatus OldStatus;
 
-        private Socket mLoopbackSocket;
-        private Timer RevPingBackTimer;
-        private int PingFaildTimes;
-
         private Timer ReConnDelayTimer;
         
         public event DataOutputHandler OutputDataReceived;
@@ -37,7 +36,7 @@ namespace ShellForPlink
         public Plink()
         {
             mPlinkProcess = new Process();
-            mPlinkProcess.StartInfo.FileName = "plink.exe";
+            //mPlinkProcess.StartInfo.FileName = "plink.exe";
             mPlinkProcess.StartInfo.UseShellExecute = false;
             mPlinkProcess.StartInfo.RedirectStandardInput = true;
             mPlinkProcess.StartInfo.RedirectStandardOutput = true;
@@ -59,37 +58,68 @@ namespace ShellForPlink
 
         private void mPlinkProcess_ErrorOrOutputDataReceived(object sender, DataReceivedEventArgs e)
         {
-            if (OutputDataReceived == null || e.Data == null || e.Data.Length ==  0)
+            if (e.Data == null)
             {
-                OutputDataReceived(1, "data null");
+                if (OutputDataReceived != null)
+                    OutputDataReceived(1, "e.Data null");
                 return;
+            }
+
+            if (e.Data.Length ==  0)
+            {
+                if (OutputDataReceived != null)
+                    OutputDataReceived(1, e.Data);
+                return;
+            }
+            else if ((e.Data.Contains("Connecting to") && e.Data.Contains("port")) || e.Data.Contains("Looking up host"))
+            {
+                if (curStatus == ConnectionStatus.idle)
+                    CurStatus = ConnectionStatus.StartConnecting;
+                else if (CurStatus != ConnectionStatus.ReConnecting && CurStatus != ConnectionStatus.StartConnecting)
+                    CurStatus = ConnectionStatus.ReConnecting;
             }
             else if (e.Data.Contains("password:"))
             {
-                 mPlinkProcess.StandardInput.WriteLine(mPlinkCf.Password);
-                OutputDataReceived(1, e.Data);
+                mPlinkProcess.StandardInput.WriteLine(mPlinkCf.Password);
+                CurStatus = ConnectionStatus.SendingUseName;
             }
-            else if (e.Data.Contains("Remote port forwarding") && e.Data.Contains("enabled"))
+            else if (e.Data.Contains("Access granted"))
+            {
+                CurStatus = ConnectionStatus.Authenticated;
+            }
+            else if ((e.Data.Contains("Local port") && e.Data.Contains("SOCKS dynamic forwarding"))
+                || (e.Data.Contains("Local port") && e.Data.Contains("forwarding to")))
             {
                 CurStatus = ConnectionStatus.Connected;
-                ConnectionStateChanged.BeginInvoke(OldStatus, CurStatus, null, this);
-                OutputDataReceived(1, e.Data);
             }
-            else if ((e.Data.Contains("Opening connection to") ||
+            else if (PlinkCf.LoopBackPing && e.Data.Contains("Remote port forwarding") && e.Data.Contains("enabled"))
+            {
+                CurStatus = ConnectionStatus.PingTunnelOpened;
+            }
+            else if (e.Data.Contains("Opening connection to") ||
                 e.Data.Contains("Received remote port") ||
                 e.Data.Contains("Attempting to forward remote port to") ||
                 e.Data.Contains("Forwarded port opened successfully") ||
-                e.Data.Contains("Forwarded port closed")) && PlinkCf.HidePortConnInfo)
+                e.Data.Contains("Forwarded port closed"))
             {
-
+                if (PlinkCf.HidePortConnInfo)
+                    return;
+                else
+                {
+                    if (OutputDataReceived != null)
+                        OutputDataReceived(1, e.Data);
+                    return;
+                }
             }
-            else
+
+            ConnectionStateChanged.BeginInvoke(OldStatus, CurStatus, null, this);
+            if (OutputDataReceived != null)
                 OutputDataReceived(1, e.Data);
         }
         private void mPlinkProcess_Exited(object sender, System.EventArgs e)
         {
             mPlinkProcess = new Process();
-            mPlinkProcess.StartInfo.FileName = "plink.exe";
+            mPlinkProcess.StartInfo.FileName = StartupPath + @"\plink.exe";
             mPlinkProcess.StartInfo.UseShellExecute = false;
             mPlinkProcess.StartInfo.RedirectStandardInput = true;
             mPlinkProcess.StartInfo.RedirectStandardOutput = true;
@@ -101,22 +131,17 @@ namespace ShellForPlink
             mPlinkProcess.ErrorDataReceived += new DataReceivedEventHandler(mPlinkProcess_ErrorOrOutputDataReceived);
             mPlinkProcess.Exited += new System.EventHandler(mPlinkProcess_Exited);
 
-
-            OutputDataReceived(0, "plink程序异常退出");
             CurStatus = ConnectionStatus.ConnectAborted;
             if (this.ConnectionStateChanged != null)
-                this.ConnectionStateChanged(this.OldStatus, this.CurStatus);
-            
+                ConnectionStateChanged.BeginInvoke(OldStatus, CurStatus, null, null);
+            OutputDataReceived(0, "plink程序异常退出");
+
             if (mPlinkCf.ReConnAfterBreak)
                 ReConnDelayTimer.Enabled = true;
         }
         private void ReConnDelayTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
             OutputDataReceived(0, "重新连接");
-            CurStatus = ConnectionStatus.ReConnecting;
-            if (this.ConnectionStateChanged != null)
-                this.ConnectionStateChanged(this.OldStatus, this.CurStatus);
-
             this.Connect();
         }
 
@@ -124,12 +149,11 @@ namespace ShellForPlink
         {
             this.ArgVailidata();
             ReConnDelayTimer.Interval = mPlinkCf.ReConnDelay * 1000;
-            CurStatus = ConnectionStatus.StartConnecting;
             this.Connect();
         }
-        public void Stop()
+        public void Stop(ConnectionStatus stopType)
         {
-            CurStatus = ConnectionStatus.ManualStoped;
+            CurStatus = stopType;
             this.DisConnect();
         }
 
@@ -139,6 +163,7 @@ namespace ShellForPlink
             {
                 ReConnDelayTimer.Enabled = false;
 
+                mPlinkProcess.StartInfo.FileName = StartupPath + @"\plink.exe";
                 mPlinkProcess.StartInfo.Arguments = mPlinkCf.FullArgument;
                 mPlinkProcess.Start();
                 try
@@ -196,7 +221,7 @@ namespace ShellForPlink
                     {
                         OutputDataReceived(0, "CancelOutputRead" + e.Message);
                     }
-
+                    
                     mPlinkProcess.Kill();
                     mPlinkProcess.Close();
                 }
@@ -207,7 +232,16 @@ namespace ShellForPlink
             }
             finally
             {
-                OutputDataReceived(0, "用户中断连接");
+                if (CurStatus == ConnectionStatus.ManualStoped)
+                {
+                    ReConnDelayTimer.Enabled = false;
+                    OutputDataReceived(0, "用户中断连接");
+                }
+                else if (CurStatus == ConnectionStatus.PingFailedStopd)
+                {
+                    ReConnDelayTimer.Enabled = true;
+                    OutputDataReceived(0, "PingFailed，中断连接");
+                }
             }
         }
 
@@ -223,6 +257,13 @@ namespace ShellForPlink
                 throw new Exception("用户名为空！");
             else if (!this.mPlinkCf.UsePrivateKey && this.mPlinkCf.Password.Length == 0)
                 throw new Exception("密码为空！");
+            if (StartupPath.Length == 0 )
+                throw new Exception("程序目录未知！");
+            if (!File.Exists(StartupPath + @"\plink.exe"))
+            {
+                throw new Exception("未找到plink.exe");
+            }
+            
         }
     }
 
@@ -238,8 +279,9 @@ namespace ShellForPlink
         SendingPassword,
         Authenticated,
         Connected,
+        PingTunnelOpened,
         ConnectAborted,
-        ManualStoped,
-        PingFailedStopd
+        PingFailedStopd,
+        ManualStoped
     }
 }

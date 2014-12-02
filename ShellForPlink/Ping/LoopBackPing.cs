@@ -62,6 +62,8 @@ namespace ShellForPlink
         
         public void Start()
         {
+            this.Stop();
+
             PingData = DateTime.Now.ToString("yyyy-MM-dd HH:mm:sssssss");
             StartServer();
             this.PingDelayTimer.Enabled = true;
@@ -281,13 +283,15 @@ namespace ShellForPlink
                     allDone.Reset();
 
                     Listener.BeginAccept(new AsyncCallback(AcceptCallback), listen);
-
-                    allDone.WaitOne();
                 }
                 catch (Exception e)
                 {
                     if (this.SocketErrAccur != null)
                         SocketErrAccur.BeginInvoke("DoAcceptLoop Err:" + e.Message, null, this);
+                }
+                finally
+                {
+                    allDone.WaitOne();
                 }
             }
         }

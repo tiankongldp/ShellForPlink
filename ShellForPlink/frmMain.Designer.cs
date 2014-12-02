@@ -70,8 +70,16 @@
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
             this.grpBoxLocal = new System.Windows.Forms.GroupBox();
             this.dGridLocal = new System.Windows.Forms.DataGridView();
+            this.Col_Loc_ListenIP = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Col_Loc_ListenPort = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Col_Loc_HostIP = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Col_Loc_HostPort = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.grbBoxRemote = new System.Windows.Forms.GroupBox();
             this.dGridRemote = new System.Windows.Forms.DataGridView();
+            this.Col_Rem_ListenIP = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Col_Rem_ListenPort = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Col_Rem_HostIP = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Col_Rem_HostPort = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.tpLicence = new System.Windows.Forms.TabPage();
             this.txtbLicence = new System.Windows.Forms.TextBox();
             this.tpReadMe = new System.Windows.Forms.TabPage();
@@ -92,14 +100,6 @@
             this.tsmiAbout = new System.Windows.Forms.ToolStripMenuItem();
             this.tsmiExit = new System.Windows.Forms.ToolStripMenuItem();
             this.notifyicon = new System.Windows.Forms.NotifyIcon(this.components);
-            this.Col_Loc_ListenIP = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Col_Loc_ListenPort = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Col_Loc_HostIP = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Col_Loc_HostPort = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Col_Rem_ListenIP = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Col_Rem_ListenPort = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Col_Rem_HostIP = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Col_Rem_HostPort = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -241,7 +241,7 @@
             this.chkConfirmBeforeExit.Location = new System.Drawing.Point(198, 3);
             this.chkConfirmBeforeExit.Name = "chkConfirmBeforeExit";
             this.chkConfirmBeforeExit.Size = new System.Drawing.Size(84, 16);
-            this.chkConfirmBeforeExit.TabIndex = 0;
+            this.chkConfirmBeforeExit.TabIndex = 10;
             this.chkConfirmBeforeExit.Text = "退出前提示";
             this.chkConfirmBeforeExit.UseVisualStyleBackColor = true;
             this.chkConfirmBeforeExit.Click += new System.EventHandler(this.chkbox_CheckedChanged);
@@ -252,7 +252,7 @@
             this.chkAutoConnOnStart.Location = new System.Drawing.Point(3, 3);
             this.chkAutoConnOnStart.Name = "chkAutoConnOnStart";
             this.chkAutoConnOnStart.Size = new System.Drawing.Size(108, 16);
-            this.chkAutoConnOnStart.TabIndex = 0;
+            this.chkAutoConnOnStart.TabIndex = 5;
             this.chkAutoConnOnStart.Text = "启动时自动连接";
             this.chkAutoConnOnStart.UseVisualStyleBackColor = true;
             this.chkAutoConnOnStart.Click += new System.EventHandler(this.chkbox_CheckedChanged);
@@ -263,7 +263,7 @@
             this.chkReConnAfterBreak.Location = new System.Drawing.Point(3, 32);
             this.chkReConnAfterBreak.Name = "chkReConnAfterBreak";
             this.chkReConnAfterBreak.Size = new System.Drawing.Size(108, 16);
-            this.chkReConnAfterBreak.TabIndex = 0;
+            this.chkReConnAfterBreak.TabIndex = 6;
             this.chkReConnAfterBreak.Text = "失败时重新连接";
             this.chkReConnAfterBreak.UseVisualStyleBackColor = true;
             this.chkReConnAfterBreak.Click += new System.EventHandler(this.chkbox_CheckedChanged);
@@ -274,7 +274,7 @@
             this.chkUsePrivateKey.Location = new System.Drawing.Point(3, 61);
             this.chkUsePrivateKey.Name = "chkUsePrivateKey";
             this.chkUsePrivateKey.Size = new System.Drawing.Size(96, 16);
-            this.chkUsePrivateKey.TabIndex = 0;
+            this.chkUsePrivateKey.TabIndex = 7;
             this.chkUsePrivateKey.Text = "使用私人密钥";
             this.chkUsePrivateKey.UseVisualStyleBackColor = true;
             this.chkUsePrivateKey.Click += new System.EventHandler(this.chkbox_CheckedChanged);
@@ -285,7 +285,7 @@
             this.chkVerboseOutput.Location = new System.Drawing.Point(3, 90);
             this.chkVerboseOutput.Name = "chkVerboseOutput";
             this.chkVerboseOutput.Size = new System.Drawing.Size(72, 16);
-            this.chkVerboseOutput.TabIndex = 0;
+            this.chkVerboseOutput.TabIndex = 8;
             this.chkVerboseOutput.Text = "冗余记录";
             this.chkVerboseOutput.UseVisualStyleBackColor = true;
             this.chkVerboseOutput.Click += new System.EventHandler(this.chkbox_CheckedChanged);
@@ -296,7 +296,7 @@
             this.chkUnlimitReConn.Location = new System.Drawing.Point(198, 32);
             this.chkUnlimitReConn.Name = "chkUnlimitReConn";
             this.chkUnlimitReConn.Size = new System.Drawing.Size(108, 16);
-            this.chkUnlimitReConn.TabIndex = 0;
+            this.chkUnlimitReConn.TabIndex = 11;
             this.chkUnlimitReConn.Text = "不限制重试次数";
             this.chkUnlimitReConn.UseVisualStyleBackColor = true;
             this.chkUnlimitReConn.Click += new System.EventHandler(this.chkbox_CheckedChanged);
@@ -307,7 +307,7 @@
             this.chkDynamicSocket.Location = new System.Drawing.Point(198, 61);
             this.chkDynamicSocket.Name = "chkDynamicSocket";
             this.chkDynamicSocket.Size = new System.Drawing.Size(108, 16);
-            this.chkDynamicSocket.TabIndex = 0;
+            this.chkDynamicSocket.TabIndex = 12;
             this.chkDynamicSocket.Text = "启用动态套接字";
             this.chkDynamicSocket.UseVisualStyleBackColor = true;
             this.chkDynamicSocket.Click += new System.EventHandler(this.chkbox_CheckedChanged);
@@ -318,7 +318,7 @@
             this.chkHidePortConnInfo.Location = new System.Drawing.Point(198, 90);
             this.chkHidePortConnInfo.Name = "chkHidePortConnInfo";
             this.chkHidePortConnInfo.Size = new System.Drawing.Size(96, 16);
-            this.chkHidePortConnInfo.TabIndex = 0;
+            this.chkHidePortConnInfo.TabIndex = 13;
             this.chkHidePortConnInfo.Text = "隐藏端口连接";
             this.chkHidePortConnInfo.UseVisualStyleBackColor = true;
             this.chkHidePortConnInfo.Click += new System.EventHandler(this.chkbox_CheckedChanged);
@@ -329,7 +329,7 @@
             this.chkCompress.Location = new System.Drawing.Point(406, 3);
             this.chkCompress.Name = "chkCompress";
             this.chkCompress.Size = new System.Drawing.Size(72, 16);
-            this.chkCompress.TabIndex = 0;
+            this.chkCompress.TabIndex = 15;
             this.chkCompress.Text = "启用压缩";
             this.chkCompress.UseVisualStyleBackColor = true;
             this.chkCompress.Click += new System.EventHandler(this.chkbox_CheckedChanged);
@@ -340,7 +340,7 @@
             this.chkNoPrompt.Location = new System.Drawing.Point(406, 90);
             this.chkNoPrompt.Name = "chkNoPrompt";
             this.chkNoPrompt.Size = new System.Drawing.Size(72, 16);
-            this.chkNoPrompt.TabIndex = 0;
+            this.chkNoPrompt.TabIndex = 18;
             this.chkNoPrompt.Text = "禁用提示";
             this.chkNoPrompt.UseVisualStyleBackColor = true;
             this.chkNoPrompt.Click += new System.EventHandler(this.chkbox_CheckedChanged);
@@ -402,7 +402,7 @@
             this.txtbReConnDelay.MaxLength = 6;
             this.txtbReConnDelay.Name = "txtbReConnDelay";
             this.txtbReConnDelay.Size = new System.Drawing.Size(81, 21);
-            this.txtbReConnDelay.TabIndex = 2;
+            this.txtbReConnDelay.TabIndex = 16;
             this.txtbReConnDelay.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtb_KeyPress);
             // 
             // txtbDynamicPort
@@ -412,7 +412,7 @@
             this.txtbDynamicPort.MaxLength = 5;
             this.txtbDynamicPort.Name = "txtbDynamicPort";
             this.txtbDynamicPort.Size = new System.Drawing.Size(81, 21);
-            this.txtbDynamicPort.TabIndex = 2;
+            this.txtbDynamicPort.TabIndex = 17;
             this.txtbDynamicPort.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtb_KeyPress);
             // 
             // txtbLoopBackPingPort
@@ -421,7 +421,7 @@
             this.txtbLoopBackPingPort.Location = new System.Drawing.Point(528, 119);
             this.txtbLoopBackPingPort.Name = "txtbLoopBackPingPort";
             this.txtbLoopBackPingPort.Size = new System.Drawing.Size(81, 21);
-            this.txtbLoopBackPingPort.TabIndex = 2;
+            this.txtbLoopBackPingPort.TabIndex = 19;
             this.txtbLoopBackPingPort.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtb_KeyPress);
             // 
             // txtbAdditionalArgs
@@ -431,7 +431,7 @@
             this.txtbAdditionalArgs.Location = new System.Drawing.Point(3, 177);
             this.txtbAdditionalArgs.Name = "txtbAdditionalArgs";
             this.txtbAdditionalArgs.Size = new System.Drawing.Size(397, 21);
-            this.txtbAdditionalArgs.TabIndex = 3;
+            this.txtbAdditionalArgs.TabIndex = 20;
             // 
             // cboLanguage
             // 
@@ -441,7 +441,7 @@
             this.cboLanguage.Location = new System.Drawing.Point(406, 177);
             this.cboLanguage.Name = "cboLanguage";
             this.cboLanguage.Size = new System.Drawing.Size(203, 20);
-            this.cboLanguage.TabIndex = 4;
+            this.cboLanguage.TabIndex = 21;
             // 
             // chkLoopBackPing
             // 
@@ -449,7 +449,7 @@
             this.chkLoopBackPing.Location = new System.Drawing.Point(198, 119);
             this.chkLoopBackPing.Name = "chkLoopBackPing";
             this.chkLoopBackPing.Size = new System.Drawing.Size(120, 16);
-            this.chkLoopBackPing.TabIndex = 0;
+            this.chkLoopBackPing.TabIndex = 14;
             this.chkLoopBackPing.Text = "启用环回ping命令";
             this.chkLoopBackPing.UseVisualStyleBackColor = true;
             this.chkLoopBackPing.Click += new System.EventHandler(this.chkbox_CheckedChanged);
@@ -460,7 +460,7 @@
             this.chkEchoServicePing.Location = new System.Drawing.Point(3, 119);
             this.chkEchoServicePing.Name = "chkEchoServicePing";
             this.chkEchoServicePing.Size = new System.Drawing.Size(144, 16);
-            this.chkEchoServicePing.TabIndex = 0;
+            this.chkEchoServicePing.TabIndex = 9;
             this.chkEchoServicePing.Text = "启用回音服务ping命令";
             this.chkEchoServicePing.UseVisualStyleBackColor = true;
             this.chkEchoServicePing.Click += new System.EventHandler(this.chkbox_CheckedChanged);
@@ -555,7 +555,7 @@
             this.txtbPassword.Name = "txtbPassword";
             this.txtbPassword.PasswordChar = '*';
             this.txtbPassword.Size = new System.Drawing.Size(179, 21);
-            this.txtbPassword.TabIndex = 2;
+            this.txtbPassword.TabIndex = 4;
             // 
             // txtbUsername
             // 
@@ -563,7 +563,7 @@
             this.txtbUsername.Location = new System.Drawing.Point(125, 30);
             this.txtbUsername.Name = "txtbUsername";
             this.txtbUsername.Size = new System.Drawing.Size(177, 21);
-            this.txtbUsername.TabIndex = 1;
+            this.txtbUsername.TabIndex = 3;
             // 
             // tpTunnels
             // 
@@ -626,6 +626,36 @@
             this.dGridLocal.TabIndex = 0;
             this.dGridLocal.KeyDown += new System.Windows.Forms.KeyEventHandler(this.dGrid_KeyDown);
             // 
+            // Col_Loc_ListenIP
+            // 
+            this.Col_Loc_ListenIP.HeaderText = "监听IP";
+            this.Col_Loc_ListenIP.MaxInputLength = 15;
+            this.Col_Loc_ListenIP.Name = "Col_Loc_ListenIP";
+            this.Col_Loc_ListenIP.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+            this.Col_Loc_ListenIP.Width = 96;
+            // 
+            // Col_Loc_ListenPort
+            // 
+            this.Col_Loc_ListenPort.HeaderText = "Port";
+            this.Col_Loc_ListenPort.MaxInputLength = 5;
+            this.Col_Loc_ListenPort.Name = "Col_Loc_ListenPort";
+            this.Col_Loc_ListenPort.Width = 50;
+            // 
+            // Col_Loc_HostIP
+            // 
+            this.Col_Loc_HostIP.HeaderText = "主机IP";
+            this.Col_Loc_HostIP.MaxInputLength = 15;
+            this.Col_Loc_HostIP.Name = "Col_Loc_HostIP";
+            this.Col_Loc_HostIP.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+            this.Col_Loc_HostIP.Width = 96;
+            // 
+            // Col_Loc_HostPort
+            // 
+            this.Col_Loc_HostPort.HeaderText = "Port";
+            this.Col_Loc_HostPort.MaxInputLength = 5;
+            this.Col_Loc_HostPort.Name = "Col_Loc_HostPort";
+            this.Col_Loc_HostPort.Width = 50;
+            // 
             // grbBoxRemote
             // 
             this.grbBoxRemote.Controls.Add(this.dGridRemote);
@@ -658,6 +688,38 @@
             this.dGridRemote.Size = new System.Drawing.Size(302, 255);
             this.dGridRemote.TabIndex = 0;
             this.dGridRemote.KeyDown += new System.Windows.Forms.KeyEventHandler(this.dGrid_KeyDown);
+            // 
+            // Col_Rem_ListenIP
+            // 
+            this.Col_Rem_ListenIP.HeaderText = "监听IP";
+            this.Col_Rem_ListenIP.MaxInputLength = 15;
+            this.Col_Rem_ListenIP.Name = "Col_Rem_ListenIP";
+            this.Col_Rem_ListenIP.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+            this.Col_Rem_ListenIP.Width = 97;
+            // 
+            // Col_Rem_ListenPort
+            // 
+            this.Col_Rem_ListenPort.HeaderText = "Port";
+            this.Col_Rem_ListenPort.MaxInputLength = 5;
+            this.Col_Rem_ListenPort.Name = "Col_Rem_ListenPort";
+            this.Col_Rem_ListenPort.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+            this.Col_Rem_ListenPort.Width = 50;
+            // 
+            // Col_Rem_HostIP
+            // 
+            this.Col_Rem_HostIP.HeaderText = "主机IP";
+            this.Col_Rem_HostIP.MaxInputLength = 15;
+            this.Col_Rem_HostIP.Name = "Col_Rem_HostIP";
+            this.Col_Rem_HostIP.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+            this.Col_Rem_HostIP.Width = 97;
+            // 
+            // Col_Rem_HostPort
+            // 
+            this.Col_Rem_HostPort.HeaderText = "Port";
+            this.Col_Rem_HostPort.MaxInputLength = 5;
+            this.Col_Rem_HostPort.Name = "Col_Rem_HostPort";
+            this.Col_Rem_HostPort.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+            this.Col_Rem_HostPort.Width = 50;
             // 
             // tpLicence
             // 
@@ -844,68 +906,6 @@
             this.notifyicon.Text = "notifyIcon1";
             this.notifyicon.Visible = true;
             this.notifyicon.DoubleClick += new System.EventHandler(this.ShowOrHide_Click);
-            // 
-            // Col_Loc_ListenIP
-            // 
-            this.Col_Loc_ListenIP.HeaderText = "监听IP";
-            this.Col_Loc_ListenIP.MaxInputLength = 15;
-            this.Col_Loc_ListenIP.Name = "Col_Loc_ListenIP";
-            this.Col_Loc_ListenIP.Resizable = System.Windows.Forms.DataGridViewTriState.False;
-            this.Col_Loc_ListenIP.Width = 96;
-            // 
-            // Col_Loc_ListenPort
-            // 
-            this.Col_Loc_ListenPort.HeaderText = "Port";
-            this.Col_Loc_ListenPort.MaxInputLength = 5;
-            this.Col_Loc_ListenPort.Name = "Col_Loc_ListenPort";
-            this.Col_Loc_ListenPort.Width = 50;
-            // 
-            // Col_Loc_HostIP
-            // 
-            this.Col_Loc_HostIP.HeaderText = "主机IP";
-            this.Col_Loc_HostIP.MaxInputLength = 15;
-            this.Col_Loc_HostIP.Name = "Col_Loc_HostIP";
-            this.Col_Loc_HostIP.Resizable = System.Windows.Forms.DataGridViewTriState.False;
-            this.Col_Loc_HostIP.Width = 96;
-            // 
-            // Col_Loc_HostPort
-            // 
-            this.Col_Loc_HostPort.HeaderText = "Port";
-            this.Col_Loc_HostPort.MaxInputLength = 5;
-            this.Col_Loc_HostPort.Name = "Col_Loc_HostPort";
-            this.Col_Loc_HostPort.Width = 50;
-            // 
-            // Col_Rem_ListenIP
-            // 
-            this.Col_Rem_ListenIP.HeaderText = "监听IP";
-            this.Col_Rem_ListenIP.MaxInputLength = 15;
-            this.Col_Rem_ListenIP.Name = "Col_Rem_ListenIP";
-            this.Col_Rem_ListenIP.Resizable = System.Windows.Forms.DataGridViewTriState.False;
-            this.Col_Rem_ListenIP.Width = 97;
-            // 
-            // Col_Rem_ListenPort
-            // 
-            this.Col_Rem_ListenPort.HeaderText = "Port";
-            this.Col_Rem_ListenPort.MaxInputLength = 5;
-            this.Col_Rem_ListenPort.Name = "Col_Rem_ListenPort";
-            this.Col_Rem_ListenPort.Resizable = System.Windows.Forms.DataGridViewTriState.False;
-            this.Col_Rem_ListenPort.Width = 50;
-            // 
-            // Col_Rem_HostIP
-            // 
-            this.Col_Rem_HostIP.HeaderText = "主机IP";
-            this.Col_Rem_HostIP.MaxInputLength = 15;
-            this.Col_Rem_HostIP.Name = "Col_Rem_HostIP";
-            this.Col_Rem_HostIP.Resizable = System.Windows.Forms.DataGridViewTriState.False;
-            this.Col_Rem_HostIP.Width = 97;
-            // 
-            // Col_Rem_HostPort
-            // 
-            this.Col_Rem_HostPort.HeaderText = "Port";
-            this.Col_Rem_HostPort.MaxInputLength = 5;
-            this.Col_Rem_HostPort.Name = "Col_Rem_HostPort";
-            this.Col_Rem_HostPort.Resizable = System.Windows.Forms.DataGridViewTriState.False;
-            this.Col_Rem_HostPort.Width = 50;
             // 
             // frmMain
             // 

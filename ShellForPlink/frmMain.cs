@@ -10,7 +10,7 @@ namespace ShellForPlink
     public partial class frmMain : Form
     {
         #region "属性"
-                
+
         private PlinkConfigCollection colPlinkConfig;
         private PlinkConfig CurPlinkConfig
         {
@@ -36,7 +36,7 @@ namespace ShellForPlink
             notifyicon.Text = "ShellForPlink";
             notifyicon.Visible = true;
             notifyicon.ContextMenuStrip = this.contextMenuStrip2;
-            notifyicon.Icon = Properties.Resources.tray_stopped;
+            notifyicon.Icon = Properties.Resources.tray_error;
             this.Icon = Properties.Resources.main;
 
             plink = new Plink();
@@ -63,7 +63,7 @@ namespace ShellForPlink
                     colPlinkConfig.CreateConfig("Default");
                 }
 
-                
+
                 this.FillConfigControl();
                 if (CurPlinkConfig.AutoConnOnStart)
                     this.btnConnect_Click(this, new EventArgs());
@@ -83,7 +83,7 @@ namespace ShellForPlink
         }
 
         #endregion
-        
+
         #region "事件"
 
         // 拦截窗体关闭，最小化到托盘
@@ -111,21 +111,21 @@ namespace ShellForPlink
                 if (!PlinkStart)
                 {
                     this.FillConfigObject();
+                    //plink.StartupPath = Environment.CurrentDirectory;
+                    plink.StartupPath = Application.StartupPath;
                     plink.PlinkCf = CurPlinkConfig;
                     plink.Start();
                     LockConfigControl(true);
-                    PlinkStart = true;
-                    this.btnConnect.Text = "断开";
-
                 }
                 else
                 {
-                    plink.Stop();
-                    if (CurPlinkConfig.LoopBackPing)
-                        Ping.Stop();
                     LockConfigControl(false);
+                    this.notifyicon.Icon = Properties.Resources.tray_error;
                     PlinkStart = false;
                     this.btnConnect.Text = "连接";
+                    plink.Stop(ConnectionStatus.ManualStoped);
+                    if (CurPlinkConfig.LoopBackPing)
+                        Ping.Stop();
                 }
             }
             catch (Exception err)
@@ -146,7 +146,7 @@ namespace ShellForPlink
         }
         private void btnCancle_Click(object sender, EventArgs e)
         {
-            
+
         }
 
         //快捷菜单
@@ -182,7 +182,7 @@ namespace ShellForPlink
 
                 this.ExitCommandDoing = true;
                 if (this.PlinkStart)
-                    plink.Stop();
+                    plink.Stop(ConnectionStatus.ManualStoped);
                 this.Close();
                 notifyicon.Visible = false;
                 this.Dispose();
@@ -213,7 +213,7 @@ namespace ShellForPlink
                     this.WindowState = FormWindowState.Normal;
                     this.tsmiShowOrHide.Text = "隐藏";
                 }
-                
+
                 this.notifyicon.Visible = true;
                 this.ResumeLayout();
             }
@@ -239,7 +239,7 @@ namespace ShellForPlink
             }
         }
 
-        //        
+        //
         private void dGrid_KeyDown(object sender, KeyEventArgs e)
         {
             try
@@ -263,7 +263,7 @@ namespace ShellForPlink
             if (((int)e.KeyChar < 48 || (int)e.KeyChar > 57) && (int)e.KeyChar != 8)
             {
                 e.Handled = true;
-            }  
+            }
         }
         private void chkbox_CheckedChanged(object sender, EventArgs e)
         {
@@ -307,44 +307,63 @@ namespace ShellForPlink
 
         private void plink_ConnectionStateChanged(ConnectionStatus lastState, ConnectionStatus curState)
         {
-            try
+            this.Invoke(new ConnectionStateChangeHandler(delegate(ConnectionStatus lastStat, ConnectionStatus curStat)
             {
-                if (curState == ConnectionStatus.Connected)
+                try
                 {
-                    this.btnConnect.Enabled = true;
-                    if (CurPlinkConfig.LoopBackPing)
+                    if (curStat == ConnectionStatus.StartConnecting || curStat == ConnectionStatus.ReConnecting)
                     {
-                        Ping.plinkConfig = CurPlinkConfig;
-                        Ping.Start();
+                        PlinkStart = true;
+                        this.btnConnect.Text = "断开";
+                        this.btnConnect.Enabled = true;
+                        this.notifyicon.Icon = Properties.Resources.tray_processing;
+                    }
+                    if (curStat == ConnectionStatus.Connected)
+                    {
+                        this.notifyicon.Icon = Properties.Resources.tray_ok;
+                    }
+                    if (curStat == ConnectionStatus.PingTunnelOpened)
+                    {
+                        if (CurPlinkConfig.LoopBackPing)
+                        {
+                            Ping.plinkConfig = CurPlinkConfig;
+                            Ping.Start();
+                        }
+                    }
+                    if (curStat == ConnectionStatus.ConnectAborted)
+                    {
+                        this.notifyicon.Icon = Properties.Resources.tray_error;
+                        if (!CurPlinkConfig.ReConnAfterBreak)
+                        {
+                            this.PlinkStart = false;
+                            LockConfigControl(false);
+                            this.btnConnect.Text = "连接";
+                            if (CurPlinkConfig.LoopBackPing)
+                                Ping.Stop();
+                        }
+                        else
+                            this.btnConnect.Enabled = false;
                     }
                 }
-                if (curState == ConnectionStatus.ConnectAborted)
+                catch (Exception e)
                 {
-                    this.PlinkStart = false;
-                    if (CurPlinkConfig.ReConnAfterBreak)
-                    {
-                        this.btnConnect.Enabled = false;
-                    }
-                    else
-                    {
-                        this.btnConnect.Text = "连接";
-                    }
+                    MessageBox.Show(e.Message);
                 }
-                if (curState == ConnectionStatus.ReConnecting)
-                {
-                    this.btnConnect.Enabled = false;
-                }
-
             }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message);
-            }
+            ), lastState, curState);
         }
-        
+
+        //链路监测
         private void Ping_PingFaildThree()
         {
-            //throw new NotImplementedException();
+            this.Invoke(new PingFaildThreeHandler(delegate()
+            {
+                plink.Stop(ConnectionStatus.PingFailedStopd);
+                Ping.Stop();
+                this.notifyicon.Icon = Properties.Resources.tray_error;
+            })
+            );
+
         }
         private void Ping_SocketErrAccur(string errdes)
         {
@@ -352,23 +371,30 @@ namespace ShellForPlink
         }
 
         #endregion
-        
+
         #region "自定义方法"
 
         //状态输出
         private void AppendDataTotxtb(int type, string data)
         {
-            if (type == 1)
+            try
             {
-                txtbOutput.AppendText(DateTime.Now.ToString("MM/dd hh:mm:ss") + " plink：" + data + "\n");
+                if (type == 1)
+                {
+                    txtbOutput.AppendText(DateTime.Now.ToString("MM/dd hh:mm:ss") + " plink：" + data + "\n");
+                }
+                else if (type == 0)
+                {
+                    txtbOutput.AppendText(DateTime.Now.ToString("MM/dd hh:mm:ss") + " ShellForPlink：" + data + "\n");
+                }
+                else if (type == 2)
+                {
+                    txtbOutput.AppendText(DateTime.Now.ToString("MM/dd hh:mm:ss") + " PingTest：" + data + "\n");
+                }
             }
-            else if (type == 0)
+            catch (Exception err)
             {
-                txtbOutput.AppendText(DateTime.Now.ToString("MM/dd hh:mm:ss") + " ShellForPlink：" + data + "\n");
-            }
-            else if (type == 2)
-            {
-                txtbOutput.AppendText(DateTime.Now.ToString("MM/dd hh:mm:ss") + " PingTest：" + data + "\n");
+                MessageBox.Show(err.Message);
             }
         }
         private void FillConfigControl()
@@ -424,7 +450,7 @@ namespace ShellForPlink
                 this.dGridRemote.Rows[i].Cells[2].Value = CurPlinkConfig.RemoteForward[i].HostIP;
                 this.dGridRemote.Rows[i].Cells[3].Value = CurPlinkConfig.RemoteForward[i].HostPort;
             }
-
+            this.txtbServerIP.Focus();
         }
         private void FillConfigObject()
         {
@@ -464,7 +490,7 @@ namespace ShellForPlink
                 pf.HostIP = this.dGridLocal.Rows[i].Cells[2].Value.ToString();
                 pf.HostPort = Convert.ToInt32(this.dGridLocal.Rows[i].Cells[3].Value);
                 CurPlinkConfig.LocalForward.Add(pf);
-                
+
             }
             for (int i = 0; i < this.dGridRemote.Rows.Count - 1; i++)
             {
@@ -537,6 +563,9 @@ namespace ShellForPlink
 
                 this.chkDynamicSocket.Enabled = false;
                 this.txtbDynamicPort.Enabled = false;
+
+                this.dGridLocal.ReadOnly = true;
+                this.dGridRemote.ReadOnly = true;
             }
             else
             {
@@ -563,6 +592,9 @@ namespace ShellForPlink
 
                 this.chkDynamicSocket.Enabled = true;
                 this.txtbDynamicPort.Enabled = CurPlinkConfig.DynamicSocket;
+
+                this.dGridLocal.ReadOnly = false;
+                this.dGridRemote.ReadOnly = false;
             }
         }
 
