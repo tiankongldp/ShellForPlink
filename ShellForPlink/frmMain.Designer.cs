@@ -176,6 +176,7 @@
             this.txtbOutput.Margin = new System.Windows.Forms.Padding(1);
             this.txtbOutput.Multiline = true;
             this.txtbOutput.Name = "txtbOutput";
+            this.txtbOutput.ReadOnly = true;
             this.txtbOutput.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.txtbOutput.Size = new System.Drawing.Size(612, 269);
             this.txtbOutput.TabIndex = 0;
@@ -237,8 +238,9 @@
             // 
             // chkConfirmBeforeExit
             // 
+            this.chkConfirmBeforeExit.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.chkConfirmBeforeExit.AutoSize = true;
-            this.chkConfirmBeforeExit.Location = new System.Drawing.Point(198, 3);
+            this.chkConfirmBeforeExit.Location = new System.Drawing.Point(198, 6);
             this.chkConfirmBeforeExit.Name = "chkConfirmBeforeExit";
             this.chkConfirmBeforeExit.Size = new System.Drawing.Size(84, 16);
             this.chkConfirmBeforeExit.TabIndex = 10;
@@ -248,8 +250,9 @@
             // 
             // chkAutoConnOnStart
             // 
+            this.chkAutoConnOnStart.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.chkAutoConnOnStart.AutoSize = true;
-            this.chkAutoConnOnStart.Location = new System.Drawing.Point(3, 3);
+            this.chkAutoConnOnStart.Location = new System.Drawing.Point(3, 6);
             this.chkAutoConnOnStart.Name = "chkAutoConnOnStart";
             this.chkAutoConnOnStart.Size = new System.Drawing.Size(108, 16);
             this.chkAutoConnOnStart.TabIndex = 5;
@@ -259,8 +262,9 @@
             // 
             // chkReConnAfterBreak
             // 
+            this.chkReConnAfterBreak.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.chkReConnAfterBreak.AutoSize = true;
-            this.chkReConnAfterBreak.Location = new System.Drawing.Point(3, 32);
+            this.chkReConnAfterBreak.Location = new System.Drawing.Point(3, 35);
             this.chkReConnAfterBreak.Name = "chkReConnAfterBreak";
             this.chkReConnAfterBreak.Size = new System.Drawing.Size(108, 16);
             this.chkReConnAfterBreak.TabIndex = 6;
@@ -270,8 +274,9 @@
             // 
             // chkUsePrivateKey
             // 
+            this.chkUsePrivateKey.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.chkUsePrivateKey.AutoSize = true;
-            this.chkUsePrivateKey.Location = new System.Drawing.Point(3, 61);
+            this.chkUsePrivateKey.Location = new System.Drawing.Point(3, 64);
             this.chkUsePrivateKey.Name = "chkUsePrivateKey";
             this.chkUsePrivateKey.Size = new System.Drawing.Size(96, 16);
             this.chkUsePrivateKey.TabIndex = 7;
@@ -281,8 +286,9 @@
             // 
             // chkVerboseOutput
             // 
+            this.chkVerboseOutput.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.chkVerboseOutput.AutoSize = true;
-            this.chkVerboseOutput.Location = new System.Drawing.Point(3, 90);
+            this.chkVerboseOutput.Location = new System.Drawing.Point(3, 93);
             this.chkVerboseOutput.Name = "chkVerboseOutput";
             this.chkVerboseOutput.Size = new System.Drawing.Size(72, 16);
             this.chkVerboseOutput.TabIndex = 8;
@@ -292,8 +298,9 @@
             // 
             // chkUnlimitReConn
             // 
+            this.chkUnlimitReConn.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.chkUnlimitReConn.AutoSize = true;
-            this.chkUnlimitReConn.Location = new System.Drawing.Point(198, 32);
+            this.chkUnlimitReConn.Location = new System.Drawing.Point(198, 35);
             this.chkUnlimitReConn.Name = "chkUnlimitReConn";
             this.chkUnlimitReConn.Size = new System.Drawing.Size(108, 16);
             this.chkUnlimitReConn.TabIndex = 11;
@@ -303,8 +310,9 @@
             // 
             // chkDynamicSocket
             // 
+            this.chkDynamicSocket.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.chkDynamicSocket.AutoSize = true;
-            this.chkDynamicSocket.Location = new System.Drawing.Point(198, 61);
+            this.chkDynamicSocket.Location = new System.Drawing.Point(198, 64);
             this.chkDynamicSocket.Name = "chkDynamicSocket";
             this.chkDynamicSocket.Size = new System.Drawing.Size(108, 16);
             this.chkDynamicSocket.TabIndex = 12;
@@ -314,8 +322,9 @@
             // 
             // chkHidePortConnInfo
             // 
+            this.chkHidePortConnInfo.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.chkHidePortConnInfo.AutoSize = true;
-            this.chkHidePortConnInfo.Location = new System.Drawing.Point(198, 90);
+            this.chkHidePortConnInfo.Location = new System.Drawing.Point(198, 93);
             this.chkHidePortConnInfo.Name = "chkHidePortConnInfo";
             this.chkHidePortConnInfo.Size = new System.Drawing.Size(96, 16);
             this.chkHidePortConnInfo.TabIndex = 13;
@@ -325,8 +334,9 @@
             // 
             // chkCompress
             // 
+            this.chkCompress.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.chkCompress.AutoSize = true;
-            this.chkCompress.Location = new System.Drawing.Point(406, 3);
+            this.chkCompress.Location = new System.Drawing.Point(406, 6);
             this.chkCompress.Name = "chkCompress";
             this.chkCompress.Size = new System.Drawing.Size(72, 16);
             this.chkCompress.TabIndex = 15;
@@ -336,8 +346,9 @@
             // 
             // chkNoPrompt
             // 
+            this.chkNoPrompt.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.chkNoPrompt.AutoSize = true;
-            this.chkNoPrompt.Location = new System.Drawing.Point(406, 90);
+            this.chkNoPrompt.Location = new System.Drawing.Point(406, 93);
             this.chkNoPrompt.Name = "chkNoPrompt";
             this.chkNoPrompt.Size = new System.Drawing.Size(72, 16);
             this.chkNoPrompt.TabIndex = 18;
@@ -397,8 +408,8 @@
             // 
             // txtbReConnDelay
             // 
-            this.txtbReConnDelay.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.txtbReConnDelay.Location = new System.Drawing.Point(528, 32);
+            this.txtbReConnDelay.Anchor = System.Windows.Forms.AnchorStyles.Left;
+            this.txtbReConnDelay.Location = new System.Drawing.Point(528, 33);
             this.txtbReConnDelay.MaxLength = 6;
             this.txtbReConnDelay.Name = "txtbReConnDelay";
             this.txtbReConnDelay.Size = new System.Drawing.Size(81, 21);
@@ -407,8 +418,8 @@
             // 
             // txtbDynamicPort
             // 
-            this.txtbDynamicPort.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.txtbDynamicPort.Location = new System.Drawing.Point(528, 61);
+            this.txtbDynamicPort.Anchor = System.Windows.Forms.AnchorStyles.Left;
+            this.txtbDynamicPort.Location = new System.Drawing.Point(528, 62);
             this.txtbDynamicPort.MaxLength = 5;
             this.txtbDynamicPort.Name = "txtbDynamicPort";
             this.txtbDynamicPort.Size = new System.Drawing.Size(81, 21);
@@ -417,8 +428,8 @@
             // 
             // txtbLoopBackPingPort
             // 
-            this.txtbLoopBackPingPort.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.txtbLoopBackPingPort.Location = new System.Drawing.Point(528, 119);
+            this.txtbLoopBackPingPort.Anchor = System.Windows.Forms.AnchorStyles.Left;
+            this.txtbLoopBackPingPort.Location = new System.Drawing.Point(528, 120);
             this.txtbLoopBackPingPort.Name = "txtbLoopBackPingPort";
             this.txtbLoopBackPingPort.Size = new System.Drawing.Size(81, 21);
             this.txtbLoopBackPingPort.TabIndex = 19;
@@ -445,8 +456,9 @@
             // 
             // chkLoopBackPing
             // 
+            this.chkLoopBackPing.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.chkLoopBackPing.AutoSize = true;
-            this.chkLoopBackPing.Location = new System.Drawing.Point(198, 119);
+            this.chkLoopBackPing.Location = new System.Drawing.Point(198, 122);
             this.chkLoopBackPing.Name = "chkLoopBackPing";
             this.chkLoopBackPing.Size = new System.Drawing.Size(120, 16);
             this.chkLoopBackPing.TabIndex = 14;
@@ -456,8 +468,9 @@
             // 
             // chkEchoServicePing
             // 
+            this.chkEchoServicePing.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.chkEchoServicePing.AutoSize = true;
-            this.chkEchoServicePing.Location = new System.Drawing.Point(3, 119);
+            this.chkEchoServicePing.Location = new System.Drawing.Point(3, 122);
             this.chkEchoServicePing.Name = "chkEchoServicePing";
             this.chkEchoServicePing.Size = new System.Drawing.Size(144, 16);
             this.chkEchoServicePing.TabIndex = 9;
@@ -914,9 +927,12 @@
             this.ClientSize = new System.Drawing.Size(626, 339);
             this.Controls.Add(this.splitContainer1);
             this.Name = "frmMain";
+            this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "ShellForPlink";
+            this.WindowState = System.Windows.Forms.FormWindowState.Minimized;
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_OnClosing);
+            this.Load += new System.EventHandler(this.frmMain_Load);
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();

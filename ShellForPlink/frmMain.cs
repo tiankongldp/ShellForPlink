@@ -21,6 +21,7 @@ namespace ShellForPlink
 
         LoopBackPing Ping;
 
+        private const string ProgramName = "ShellForPlink";
         private string xmlConfigFileName = "ShellForPlink.xml";
         private bool ExitCommandDoing = false;
         private bool PlinkStart = false;
@@ -65,8 +66,6 @@ namespace ShellForPlink
 
 
                 this.FillConfigControl();
-                if (CurPlinkConfig.AutoConnOnStart)
-                    this.btnConnect_Click(this, new EventArgs());
             }
             catch (Exception e)
             {
@@ -87,6 +86,11 @@ namespace ShellForPlink
         #region "事件"
 
         // 拦截窗体关闭，最小化到托盘
+        private void frmMain_Load(object sender, EventArgs e)
+        {
+            if (CurPlinkConfig.AutoConnOnStart)
+                this.btnConnect_Click(this, new EventArgs());
+        }
         private void MainForm_OnClosing(object sender, FormClosingEventArgs e)
         {
             if (!this.ExitCommandDoing)
@@ -111,6 +115,7 @@ namespace ShellForPlink
                 if (!PlinkStart)
                 {
                     this.FillConfigObject();
+                    this.txtbOutput.Clear();
                     //plink.StartupPath = Environment.CurrentDirectory;
                     plink.StartupPath = Application.StartupPath;
                     plink.PlinkCf = CurPlinkConfig;
@@ -123,6 +128,7 @@ namespace ShellForPlink
                     this.notifyicon.Icon = Properties.Resources.tray_error;
                     PlinkStart = false;
                     this.btnConnect.Text = "连接";
+                    this.tsmiConnOrDisconn.Text = "连接";
                     plink.Stop(ConnectionStatus.ManualStoped);
                     if (CurPlinkConfig.LoopBackPing)
                         Ping.Stop();
@@ -202,14 +208,17 @@ namespace ShellForPlink
                 if (this.ShowInTaskbar)
                 {
                     this.WindowState = FormWindowState.Minimized;
-                    //this.Hide();
+                    Application.DoEvents();
+                    System.Threading.Thread.Sleep(160);
                     this.ShowInTaskbar = !this.ShowInTaskbar;
+                    this.Hide();
                     this.tsmiShowOrHide.Text = "显示";
                 }
                 else
                 {
                     this.WindowState = FormWindowState.Minimized;
                     this.ShowInTaskbar = !this.ShowInTaskbar;
+                    this.Show();
                     this.WindowState = FormWindowState.Normal;
                     this.tsmiShowOrHide.Text = "隐藏";
                 }
@@ -315,6 +324,7 @@ namespace ShellForPlink
                     {
                         PlinkStart = true;
                         this.btnConnect.Text = "断开";
+                        this.tsmiConnOrDisconn.Text = "断开";
                         this.btnConnect.Enabled = true;
                         this.notifyicon.Icon = Properties.Resources.tray_processing;
                     }
@@ -338,6 +348,7 @@ namespace ShellForPlink
                             this.PlinkStart = false;
                             LockConfigControl(false);
                             this.btnConnect.Text = "连接";
+                            this.tsmiConnOrDisconn.Text = "连接";
                             if (CurPlinkConfig.LoopBackPing)
                                 Ping.Stop();
                         }
@@ -381,15 +392,15 @@ namespace ShellForPlink
             {
                 if (type == 1)
                 {
-                    txtbOutput.AppendText(DateTime.Now.ToString("MM/dd hh:mm:ss") + " plink：" + data + "\n");
+                    txtbOutput.AppendText(DateTime.Now.ToString("MM/dd hh:mm:ss") + " plink：" + data + Environment.NewLine);
                 }
                 else if (type == 0)
                 {
-                    txtbOutput.AppendText(DateTime.Now.ToString("MM/dd hh:mm:ss") + " ShellForPlink：" + data + "\n");
+                    txtbOutput.AppendText(DateTime.Now.ToString("MM/dd hh:mm:ss") + " ShellForPlink：" + data + Environment.NewLine);
                 }
                 else if (type == 2)
                 {
-                    txtbOutput.AppendText(DateTime.Now.ToString("MM/dd hh:mm:ss") + " PingTest：" + data + "\n");
+                    txtbOutput.AppendText(DateTime.Now.ToString("MM/dd hh:mm:ss") + " PingTest：" + data + Environment.NewLine);
                 }
             }
             catch (Exception err)

@@ -4,10 +4,11 @@ using System.Diagnostics;
 using System.Net.Sockets;
 using System.Text;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace ShellForPlink
 {
-    class Plink
+    internal class Plink
     {
         private PlinkConfig mPlinkCf;
         public PlinkConfig PlinkCf
@@ -71,36 +72,47 @@ namespace ShellForPlink
                     OutputDataReceived(1, e.Data);
                 return;
             }
-            else if ((e.Data.Contains("Connecting to") && e.Data.Contains("port")) || e.Data.Contains("Looking up host"))
+            else if (Utility.IsLookingup(e.Data))
             {
                 if (curStatus == ConnectionStatus.idle)
                     CurStatus = ConnectionStatus.StartConnecting;
                 else if (CurStatus != ConnectionStatus.ReConnecting && CurStatus != ConnectionStatus.StartConnecting)
                     CurStatus = ConnectionStatus.ReConnecting;
             }
-            else if (e.Data.Contains("password:"))
+            else if (Utility.IsStoreKey(e.Data))
+            {
+                mPlinkProcess.StandardInput.WriteLine("n");
+                CurStatus = ConnectionStatus.KeyConfirm;
+            }
+            else if (Utility.IsUsername(e.Data))
             {
                 mPlinkProcess.StandardInput.WriteLine(mPlinkCf.Password);
                 CurStatus = ConnectionStatus.SendingUseName;
             }
-            else if (e.Data.Contains("Access granted"))
+            else if (Utility.IsPassword(e.Data))
+            {
+                CurStatus = ConnectionStatus.SendingPassword;
+            }
+            else if (Utility.IsAccessGranted(e.Data))
             {
                 CurStatus = ConnectionStatus.Authenticated;
             }
-            else if ((e.Data.Contains("Local port") && e.Data.Contains("SOCKS dynamic forwarding"))
-                || (e.Data.Contains("Local port") && e.Data.Contains("forwarding to")))
+            else if (Utility.IsLocalportForward(e.Data) || Utility.IsDynamicSocks(e.Data))
             {
-                CurStatus = ConnectionStatus.Connected;
+                if (curStatus == ConnectionStatus.Connected)
+                {
+                    if (OutputDataReceived != null)
+                        OutputDataReceived(1, e.Data);
+                    return;
+                }
+                else
+                    CurStatus = ConnectionStatus.Connected;
             }
-            else if (PlinkCf.LoopBackPing && e.Data.Contains("Remote port forwarding") && e.Data.Contains("enabled"))
+            else if (PlinkCf.LoopBackPing && Utility.IsRemoteportForward(e.Data))
             {
                 CurStatus = ConnectionStatus.PingTunnelOpened;
             }
-            else if (e.Data.Contains("Opening connection to") ||
-                e.Data.Contains("Received remote port") ||
-                e.Data.Contains("Attempting to forward remote port to") ||
-                e.Data.Contains("Forwarded port opened successfully") ||
-                e.Data.Contains("Forwarded port closed"))
+            else if (Utility.IsPortConnInfo(e.Data))
             {
                 if (PlinkCf.HidePortConnInfo)
                     return;
@@ -110,6 +122,12 @@ namespace ShellForPlink
                         OutputDataReceived(1, e.Data);
                     return;
                 }
+            }
+            else
+            {
+                if (OutputDataReceived != null)
+                    OutputDataReceived(1, e.Data);
+                return;
             }
 
             ConnectionStateChanged.BeginInvoke(OldStatus, CurStatus, null, this);
@@ -166,6 +184,7 @@ namespace ShellForPlink
                 mPlinkProcess.StartInfo.FileName = StartupPath + @"\plink.exe";
                 mPlinkProcess.StartInfo.Arguments = mPlinkCf.FullArgument;
                 mPlinkProcess.Start();
+                
                 try
                 {
                     mPlinkProcess.BeginErrorReadLine();
@@ -185,9 +204,9 @@ namespace ShellForPlink
                 {
                     OutputDataReceived(0, "BeginOutputReadLine" + e.Message);
                 }
-                //不发送换行获取不到输出，待查
-                mPlinkProcess.StandardInput.WriteLine("");
-                mPlinkProcess.StandardInput.Flush();
+                //不发送换行获取不到没有换行符的输出
+                //mPlinkProcess.StandardInput.WriteLine("n");
+                //mPlinkProcess.StandardInput.Flush();
             }
             catch (Exception e)
             {
@@ -275,6 +294,7 @@ namespace ShellForPlink
         idle,
         StartConnecting,
         ReConnecting,
+        KeyConfirm,
         SendingUseName,
         SendingPassword,
         Authenticated,

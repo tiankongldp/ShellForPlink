@@ -67,6 +67,7 @@
     </Compile>
     <Compile Include="Plink\Plink.cs" />
     <Compile Include="Config\PortForward.cs" />
+    <Compile Include="Plink\Utility.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="frmCreateConfig.resx">
