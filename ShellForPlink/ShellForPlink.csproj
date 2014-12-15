@@ -50,6 +50,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Config\Encryption.cs" />
     <Compile Include="Ping\LoopBackPing.cs" />
     <Compile Include="Config\PlinkConfig.cs" />
     <Compile Include="Config\PlinkConfigCollection.cs" />
@@ -100,15 +101,15 @@
     <None Include="Resources\1.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="PLINK.EXE">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <None Include="Resources\icon.ico" />
     <None Include="Resources\main.ico" />
     <None Include="Resources\tray.error.ico" />
     <None Include="Resources\tray.ok.ico" />
     <None Include="Resources\tray.processing.ico" />
     <None Include="Resources\tray.stopped.ico" />
+    <Content Include="PLINK.EXE">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Resources\icon-error.ico" />
     <None Include="Resources\logo.png" />
     <None Include="Resources\logo-error.png" />

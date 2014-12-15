@@ -23,6 +23,7 @@ namespace ShellForPlink
 
         private const string ProgramName = "ShellForPlink";
         private string xmlConfigFileName = "ShellForPlink.xml";
+        
         private bool ExitCommandDoing = false;
         private bool PlinkStart = false;
 
@@ -39,6 +40,8 @@ namespace ShellForPlink
             notifyicon.ContextMenuStrip = this.contextMenuStrip2;
             notifyicon.Icon = Properties.Resources.tray_error;
             this.Icon = Properties.Resources.main;
+
+            tabControl1.SelectedIndex = 1;
 
             plink = new Plink();
 
@@ -77,7 +80,7 @@ namespace ShellForPlink
             this.plink.ConnectionStateChanged += new ConnectionStateChangeHandler(plink_ConnectionStateChanged);
             this.plink.OutputDataReceived += new DataOutputHandler(this.plink_OutDataRev);
 
-            this.Ping.SocketErrAccur += new SocketErrAccHandler(Ping_SocketErrAccur);
+            this.Ping.SocketErrAccur += new DataOutputHandler(Ping_SocketErrAccur);
             this.Ping.PingFaildThree += new PingFaildThreeHandler(Ping_PingFaildThree);
         }
 
@@ -150,9 +153,9 @@ namespace ShellForPlink
                 MessageBox.Show(err.Message);
             }
         }
-        private void btnCancle_Click(object sender, EventArgs e)
+        private void btnOutputClear_Click(object sender, EventArgs e)
         {
-
+            txtbOutput.Clear();
         }
 
         //快捷菜单
@@ -248,7 +251,31 @@ namespace ShellForPlink
             }
         }
 
-        //
+        //日志级别
+        private void cboOutputLevel_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                switch (cboOutputLevel.SelectedIndex)
+                {
+                    case 0:
+                        CurPlinkConfig.Loglevel = LogLevel.Normal;
+                        break;
+                    case 1:
+                        CurPlinkConfig.Loglevel = LogLevel.Warning;
+                        break;
+                    case 2:
+                        CurPlinkConfig.Loglevel = LogLevel.Detail;
+                        break;
+                }
+            }
+            catch (Exception err)
+            {
+                this.AppendDataTotxtb(0, LogLevel.Warning, "cboLoglevel" + err.Message);
+            }
+        }
+
+        //通道
         private void dGrid_KeyDown(object sender, KeyEventArgs e)
         {
             try
@@ -260,7 +287,7 @@ namespace ShellForPlink
                     dgrid.Rows.RemoveAt(index);
                 }
             }
-            catch (Exception err)
+            catch
             {
                 //MessageBox.Show(err.Message);
             }
@@ -274,7 +301,7 @@ namespace ShellForPlink
                 e.Handled = true;
             }
         }
-        private void chkbox_CheckedChanged(object sender, EventArgs e)
+        private void chkbox_Click(object sender, EventArgs e)
         {
             try
             {
@@ -301,6 +328,10 @@ namespace ShellForPlink
                 }
                 else if (chk.Name == this.chkDynamicSocket.Name)
                     this.txtbDynamicPort.Enabled = chk.Checked;
+                else if (chk.Name == this.chkHidePortConnInfo.Name)
+                    CurPlinkConfig.HidePortConnInfo = chk.Checked;
+                else if (chk.Name == this.chkNoPrompt.Name)
+                    CurPlinkConfig.NoPrompt = chk.Checked;
             }
             catch (Exception err)
             {
@@ -308,12 +339,11 @@ namespace ShellForPlink
             }
         }
 
-        //日志产生
-        private void plink_OutDataRev(int type, string data)
+        //链接
+        private void plink_OutDataRev(int type, LogLevel level, string data)
         {
-            this.Invoke(new DataOutputHandler(this.AppendDataTotxtb), type, data);
+            this.Invoke(new DataOutputHandler(this.AppendDataTotxtb), type, level, data);
         }
-
         private void plink_ConnectionStateChanged(ConnectionStatus lastState, ConnectionStatus curState)
         {
             this.Invoke(new ConnectionStateChangeHandler(delegate(ConnectionStatus lastStat, ConnectionStatus curStat)
@@ -376,9 +406,9 @@ namespace ShellForPlink
             );
 
         }
-        private void Ping_SocketErrAccur(string errdes)
+        private void Ping_SocketErrAccur(int type, LogLevel level, string data)
         {
-            this.Invoke(new DataOutputHandler(this.AppendDataTotxtb), 2, errdes);
+            this.Invoke(new DataOutputHandler(this.AppendDataTotxtb), type, level, data);
         }
 
         #endregion
@@ -386,26 +416,37 @@ namespace ShellForPlink
         #region "自定义方法"
 
         //状态输出
-        private void AppendDataTotxtb(int type, string data)
+        private void AppendDataTotxtb(int type, LogLevel level, string data)
         {
             try
             {
-                if (type == 1)
+                if (CurPlinkConfig.Loglevel < level)
+                    return;
+                else if (Utility.IsPortConnInfo(data))
                 {
-                    txtbOutput.AppendText(DateTime.Now.ToString("MM/dd hh:mm:ss") + " plink：" + data + Environment.NewLine);
+                    if (CurPlinkConfig.HidePortConnInfo)
+                        return;
                 }
-                else if (type == 0)
+
+                string info = DateTime.Now.ToString("MM/dd hh:mm:ss");
+                if (type == 0)
                 {
-                    txtbOutput.AppendText(DateTime.Now.ToString("MM/dd hh:mm:ss") + " ShellForPlink：" + data + Environment.NewLine);
+                    info += " ShellForPlink：" + data;
+                }
+                else if (type == 1)
+                {
+                    info += " plink：" + data;
                 }
                 else if (type == 2)
                 {
-                    txtbOutput.AppendText(DateTime.Now.ToString("MM/dd hh:mm:ss") + " PingTest：" + data + Environment.NewLine);
+                    info += " PingTest：" + data;
                 }
+                txtbOutput.AppendText(info + Environment.NewLine);
             }
             catch (Exception err)
             {
-                MessageBox.Show(err.Message);
+                txtbOutput.AppendText(DateTime.Now.ToString("MM/dd hh:mm:ss") + 
+                    " ShellForPlink：" + "AppendDataTotxtb:" + err.Message + Environment.NewLine);
             }
         }
         private void FillConfigControl()
@@ -415,16 +456,17 @@ namespace ShellForPlink
             this.txtbServerIP.Text = CurPlinkConfig.ServerIP;
             this.txtbServerPort.Text = CurPlinkConfig.ServerPort.ToString();
             this.txtbUsername.Text = CurPlinkConfig.Username;
-            this.txtbPassword.Text = CurPlinkConfig.Password;
+            this.txtbPassword.Text = CurPlinkConfig.PasswordCrypt;
             this.txtbAdditionalArgs.Text = CurPlinkConfig.AdditionalArgs;
 
             this.chkAutoConnOnStart.Checked = CurPlinkConfig.AutoConnOnStart;
             this.chkConfirmBeforeExit.Checked = CurPlinkConfig.ConfirmBeforeExit;
             this.chkUsePrivateKey.Checked = CurPlinkConfig.UsePrivateKey;
-            this.chkVerboseOutput.Checked = CurPlinkConfig.VerboseOutput;
             this.chkHidePortConnInfo.Checked = CurPlinkConfig.HidePortConnInfo;
             this.chkCompress.Checked = CurPlinkConfig.Compress;
             this.chkNoPrompt.Checked = CurPlinkConfig.NoPrompt;
+
+            this.cboOutputLevel.SelectedIndex = (int)CurPlinkConfig.Loglevel;
 
             this.chkReConnAfterBreak.Checked = CurPlinkConfig.ReConnAfterBreak;
             this.chkUnlimitReConn.Checked = CurPlinkConfig.UnLimitReConn;
@@ -468,11 +510,10 @@ namespace ShellForPlink
             CurPlinkConfig.ServerIP = this.txtbServerIP.Text.Trim();
             CurPlinkConfig.ServerPort = Convert.ToInt32(this.txtbServerPort.Text.Trim());
             CurPlinkConfig.Username = this.txtbUsername.Text.Trim();
-            CurPlinkConfig.Password = this.txtbPassword.Text.Trim();
+            CurPlinkConfig.PasswordCrypt = this.txtbPassword.Text.Trim();
             CurPlinkConfig.AutoConnOnStart = this.chkAutoConnOnStart.Checked;
             CurPlinkConfig.ConfirmBeforeExit = this.chkConfirmBeforeExit.Checked;
             CurPlinkConfig.UsePrivateKey = this.chkUsePrivateKey.Checked;
-            CurPlinkConfig.VerboseOutput = this.chkVerboseOutput.Checked;
             CurPlinkConfig.AdditionalArgs = this.txtbAdditionalArgs.Text.Trim();
 
             CurPlinkConfig.ReConnAfterBreak = this.chkReConnAfterBreak.Checked;
@@ -558,11 +599,10 @@ namespace ShellForPlink
                 this.chkAutoConnOnStart.Enabled = false;
                 this.chkConfirmBeforeExit.Enabled = false;
                 this.chkUsePrivateKey.Enabled = false;
-                this.chkVerboseOutput.Enabled = false;
                 this.txtbAdditionalArgs.Enabled = false;
-                this.chkHidePortConnInfo.Enabled = false;
                 this.chkCompress.Enabled = false;
-                this.chkNoPrompt.Enabled = false;
+                //this.chkNoPrompt.Enabled = false;
+                //this.chkHidePortConnInfo.Enabled = false;
 
                 this.chkReConnAfterBreak.Enabled = false;
                 this.chkUnlimitReConn.Enabled = false;
@@ -587,11 +627,10 @@ namespace ShellForPlink
                 this.chkAutoConnOnStart.Enabled = true;
                 this.chkConfirmBeforeExit.Enabled = true;
                 this.chkUsePrivateKey.Enabled = true;
-                this.chkVerboseOutput.Enabled = true;
                 this.txtbAdditionalArgs.Enabled = true;
-                this.chkHidePortConnInfo.Enabled = true;
                 this.chkCompress.Enabled = true;
-                this.chkNoPrompt.Enabled = true;
+                //this.chkNoPrompt.Enabled = true;
+                //this.chkHidePortConnInfo.Enabled = true;
 
                 this.chkReConnAfterBreak.Enabled = true;
                 this.chkUnlimitReConn.Enabled = CurPlinkConfig.ReConnAfterBreak;
@@ -610,5 +649,6 @@ namespace ShellForPlink
         }
 
         #endregion
+
     }
 }

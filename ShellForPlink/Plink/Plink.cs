@@ -62,17 +62,20 @@ namespace ShellForPlink
             if (e.Data == null)
             {
                 if (OutputDataReceived != null)
-                    OutputDataReceived(1, "e.Data null");
+                    OutputDataReceived(1, LogLevel.Normal, "e.Data null");
                 return;
             }
-
-            if (e.Data.Length ==  0)
+            else if (e.Data.Length ==  0)
             {
                 if (OutputDataReceived != null)
-                    OutputDataReceived(1, e.Data);
+                    OutputDataReceived(1, LogLevel.Normal, e.Data);
                 return;
             }
-            else if (Utility.IsLookingup(e.Data))
+            else
+                if (OutputDataReceived != null)
+                    OutputDataReceived(1, LogLevel.Normal, e.Data);
+
+            if (Utility.IsLookingup(e.Data))
             {
                 if (curStatus == ConnectionStatus.idle)
                     CurStatus = ConnectionStatus.StartConnecting;
@@ -81,12 +84,12 @@ namespace ShellForPlink
             }
             else if (Utility.IsStoreKey(e.Data))
             {
-                mPlinkProcess.StandardInput.WriteLine("n");
+                //mPlinkProcess.StandardInput.WriteLine("n");
                 CurStatus = ConnectionStatus.KeyConfirm;
             }
             else if (Utility.IsUsername(e.Data))
             {
-                mPlinkProcess.StandardInput.WriteLine(mPlinkCf.Password);
+                mPlinkProcess.StandardInput.WriteLine(mPlinkCf.PasswordCrypt);
                 CurStatus = ConnectionStatus.SendingUseName;
             }
             else if (Utility.IsPassword(e.Data))
@@ -100,39 +103,18 @@ namespace ShellForPlink
             else if (Utility.IsLocalportForward(e.Data) || Utility.IsDynamicSocks(e.Data))
             {
                 if (curStatus == ConnectionStatus.Connected)
-                {
-                    if (OutputDataReceived != null)
-                        OutputDataReceived(1, e.Data);
                     return;
-                }
                 else
                     CurStatus = ConnectionStatus.Connected;
             }
-            else if (PlinkCf.LoopBackPing && Utility.IsRemoteportForward(e.Data))
+            else if (PlinkCf.LoopBackPing && Utility.IsPingRemoteForward(e.Data, PlinkCf.LoopBackPingPort))
             {
                 CurStatus = ConnectionStatus.PingTunnelOpened;
             }
-            else if (Utility.IsPortConnInfo(e.Data))
-            {
-                if (PlinkCf.HidePortConnInfo)
-                    return;
-                else
-                {
-                    if (OutputDataReceived != null)
-                        OutputDataReceived(1, e.Data);
-                    return;
-                }
-            }
             else
-            {
-                if (OutputDataReceived != null)
-                    OutputDataReceived(1, e.Data);
                 return;
-            }
 
             ConnectionStateChanged.BeginInvoke(OldStatus, CurStatus, null, this);
-            if (OutputDataReceived != null)
-                OutputDataReceived(1, e.Data);
         }
         private void mPlinkProcess_Exited(object sender, System.EventArgs e)
         {
@@ -152,14 +134,14 @@ namespace ShellForPlink
             CurStatus = ConnectionStatus.ConnectAborted;
             if (this.ConnectionStateChanged != null)
                 ConnectionStateChanged.BeginInvoke(OldStatus, CurStatus, null, null);
-            OutputDataReceived(0, "plink程序异常退出");
+            OutputDataReceived(0, LogLevel.Normal, "plink程序异常退出");
 
             if (mPlinkCf.ReConnAfterBreak)
                 ReConnDelayTimer.Enabled = true;
         }
         private void ReConnDelayTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            OutputDataReceived(0, "重新连接");
+            OutputDataReceived(0, LogLevel.Normal, "重新连接");
             this.Connect();
         }
 
@@ -188,29 +170,29 @@ namespace ShellForPlink
                 try
                 {
                     mPlinkProcess.BeginErrorReadLine();
-                    OutputDataReceived(0, "BeginErrorReadLine Success");
+                    OutputDataReceived(0, LogLevel.Detail, "BeginErrorReadLine Success");
                 }
                 catch (Exception e)
                 {
-                    OutputDataReceived(0, "BeginErrorReadLine" + e.Message);
+                    OutputDataReceived(0, LogLevel.Warning, "BeginErrorReadLine" + e.Message);
                 }
                 
                 try
                 {
                     mPlinkProcess.BeginOutputReadLine();
-                    OutputDataReceived(0, "BeginOutputReadLine Success");
+                    OutputDataReceived(0, LogLevel.Detail, "BeginOutputReadLine Success");
                 }
                 catch (Exception e)
                 {
-                    OutputDataReceived(0, "BeginOutputReadLine" + e.Message);
+                    OutputDataReceived(0, LogLevel.Warning, "BeginOutputReadLine" + e.Message);
                 }
                 //不发送换行获取不到没有换行符的输出
-                //mPlinkProcess.StandardInput.WriteLine("n");
+                mPlinkProcess.StandardInput.WriteLine("n");
                 //mPlinkProcess.StandardInput.Flush();
             }
             catch (Exception e)
             {
-                OutputDataReceived(0, e.Message);
+                OutputDataReceived(0, LogLevel.Warning, e.Message);
             }
         }
         private void DisConnect()
@@ -219,26 +201,26 @@ namespace ShellForPlink
             {
                 if (!mPlinkProcess.HasExited)
                 {
-                    mPlinkProcess.StandardInput.WriteLine("");
+                    //mPlinkProcess.StandardInput.WriteLine("");
                     System.Threading.Thread.Sleep(200);
 
                     try
                     {
                         mPlinkProcess.CancelErrorRead();
-                        OutputDataReceived(0, "CancelErrorRead Success");
+                        OutputDataReceived(0, LogLevel.Detail, "CancelErrorRead Success");
                     }
                     catch (Exception e)
                     {
-                        OutputDataReceived(0, "CancelErrorRead" + e.Message);
+                        OutputDataReceived(0, LogLevel.Warning, "CancelErrorRead" + e.Message);
                     }
                     try
                     {
                         mPlinkProcess.CancelOutputRead();
-                        OutputDataReceived(0, "CancelOutputRead Success");
+                        OutputDataReceived(0, LogLevel.Detail, "CancelOutputRead Success");
                     }
                     catch (Exception e)
                     {
-                        OutputDataReceived(0, "CancelOutputRead" + e.Message);
+                        OutputDataReceived(0, LogLevel.Warning, "CancelOutputRead" + e.Message);
                     }
                     
                     mPlinkProcess.Kill();
@@ -247,19 +229,19 @@ namespace ShellForPlink
             }
             catch (Exception e)
             {
-                OutputDataReceived(0, e.Message);
+                OutputDataReceived(0, LogLevel.Warning, e.Message);
             }
             finally
             {
                 if (CurStatus == ConnectionStatus.ManualStoped)
                 {
                     ReConnDelayTimer.Enabled = false;
-                    OutputDataReceived(0, "用户中断连接");
+                    OutputDataReceived(0, LogLevel.Normal, "用户中断连接");
                 }
                 else if (CurStatus == ConnectionStatus.PingFailedStopd)
                 {
                     ReConnDelayTimer.Enabled = true;
-                    OutputDataReceived(0, "PingFailed，中断连接");
+                    OutputDataReceived(0, LogLevel.Normal, "PingFailed，中断连接");
                 }
             }
         }
@@ -274,7 +256,7 @@ namespace ShellForPlink
                 throw new Exception("服务器Port为空！");
             else if (this.mPlinkCf.Username.Length == 0)
                 throw new Exception("用户名为空！");
-            else if (!this.mPlinkCf.UsePrivateKey && this.mPlinkCf.Password.Length == 0)
+            else if (!this.mPlinkCf.UsePrivateKey && this.mPlinkCf.PasswordCrypt.Length == 0)
                 throw new Exception("密码为空！");
             if (StartupPath.Length == 0 )
                 throw new Exception("程序目录未知！");
@@ -286,22 +268,4 @@ namespace ShellForPlink
         }
     }
 
-    public delegate void DataOutputHandler(int type, string data);
-    public delegate void ConnectionStateChangeHandler(ConnectionStatus lastState, ConnectionStatus curState);
-
-    public enum ConnectionStatus
-    {
-        idle,
-        StartConnecting,
-        ReConnecting,
-        KeyConfirm,
-        SendingUseName,
-        SendingPassword,
-        Authenticated,
-        Connected,
-        PingTunnelOpened,
-        ConnectAborted,
-        PingFailedStopd,
-        ManualStoped
-    }
 }

@@ -6,28 +6,12 @@ using System.Threading;
 
 namespace ShellForPlink
 {
-    public enum SocketObjType
-    {
-        Client,
-        Server
-    }
-    public class StateObject
-    {
-        public SocketObjType Type;
-        public Socket workSocket = null;
-        public const int BufferSize = 256;
-        public byte[] buffer = new byte[BufferSize];
-        public StringBuilder sb = new StringBuilder();
-    }
-
-    public delegate void DoAcceptLoopHandler(Socket listen);
-    public delegate void SocketErrAccHandler(string errdes);
-    public delegate void LoopBackDataRevHandler(string data);
-    public delegate void DoConnectHandler(Socket handle);
-    public delegate void PingFaildThreeHandler();
-
+    
     public class LoopBackPing
     {
+        private delegate void DoAcceptLoopHandler(Socket listen);
+        private delegate void DoConnectHandler(Socket handle);
+
         public PlinkConfig plinkConfig;
         private System.Timers.Timer PingWaitTimer;
         private System.Timers.Timer PingDelayTimer;
@@ -44,18 +28,18 @@ namespace ShellForPlink
         private Socket Listener;
         private bool bDoAcceptLoop = false;
         private IAsyncResult arDoAcceptLoop;
-        public ManualResetEvent allDone = new ManualResetEvent(false);
-        public event SocketErrAccHandler SocketErrAccur;
+        private ManualResetEvent allDone = new ManualResetEvent(false);
+        public event DataOutputHandler SocketErrAccur;
 
         
         public LoopBackPing()
         {
             PingWaitTimer = new System.Timers.Timer();
-            PingWaitTimer.Interval = 16 * 1000;
+            PingWaitTimer.Interval = 20 * 1000;
             PingWaitTimer.Enabled = false;
             PingWaitTimer.Elapsed += new System.Timers.ElapsedEventHandler(PingWaitTimer_Elapsed);
             PingDelayTimer = new System.Timers.Timer();
-            PingDelayTimer.Interval = 30 * 1000;
+            PingDelayTimer.Interval = 5 * 60 * 1000;
             PingDelayTimer.Enabled = false;
             PingDelayTimer.Elapsed += new System.Timers.ElapsedEventHandler(PingDelayTimer_Elapsed);
         }
@@ -95,7 +79,7 @@ namespace ShellForPlink
             catch (Exception err)
             {
                 if (SocketErrAccur != null)
-                    SocketErrAccur.BeginInvoke("PingWaitTimer_Elapsed Err" + err.Message, null, this);
+                    SocketErrAccur.BeginInvoke(2, LogLevel.Warning, "PingWaitTimer_Elapsed Err" + err.Message, null, this);
             }
 
             if (HasReceived)
@@ -103,13 +87,13 @@ namespace ShellForPlink
                 HasReceived = false;
                 PingFailedTimes = 0;
                 if (SocketErrAccur != null)
-                    SocketErrAccur.BeginInvoke("PingTest success", null, this);
+                    SocketErrAccur.BeginInvoke(2, LogLevel.Warning, "PingTest success", null, this);
             }
             else
             {
                 PingFailedTimes++;
                 if (SocketErrAccur != null)
-                    SocketErrAccur.BeginInvoke("PingTest failed " + PingFailedTimes + " times", null, this);
+                    SocketErrAccur.BeginInvoke(2, LogLevel.Warning, "PingTest failed " + PingFailedTimes + " times", null, this);
 
                 if (PingFailedTimes >= 3)
                 {
@@ -129,7 +113,7 @@ namespace ShellForPlink
                 Socket Client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 
                 if (SocketErrAccur != null)
-                    SocketErrAccur.BeginInvoke("StartClient", null, this);
+                    SocketErrAccur.BeginInvoke(2, LogLevel.Detail, "StartClient", null, this);
 
                 DoConnectHandler conn = new DoConnectHandler(ConnectSync);
                 arConnect = conn.BeginInvoke(Client, null, Client);
@@ -137,7 +121,7 @@ namespace ShellForPlink
             catch (Exception e)
             {
                 if (SocketErrAccur != null)
-                    SocketErrAccur.BeginInvoke("StartClient Err:" + e.Message, null, this);
+                    SocketErrAccur.BeginInvoke(2, LogLevel.Warning, "StartClient Err:" + e.Message, null, this);
             }
         }
         private void StopClient()
@@ -166,14 +150,14 @@ namespace ShellForPlink
                 handle.Send(byteData, 0, byteData.Length, 0);
                 
                 if (this.SocketErrAccur != null)
-                    SocketErrAccur.BeginInvoke("Sending Ping Data:" + PingData, null, this);
+                    SocketErrAccur.BeginInvoke(2, LogLevel.Detail, "Sending Ping Data:" + PingData, null, this);
                 //关闭后收不到数据
                 //handle.Shutdown(SocketShutdown.Send);
             }
             catch (Exception e)
             {
                 if (this.SocketErrAccur != null)
-                    SocketErrAccur.BeginInvoke("ConnectSync Err:" + e.Message, null, this);
+                    SocketErrAccur.BeginInvoke(2, LogLevel.Warning, "ConnectSync Err:" + e.Message, null, this);
             }
         }
         private void ConnectASync()
@@ -210,7 +194,7 @@ namespace ShellForPlink
             catch (Exception e)
             {
                 if (this.SocketErrAccur != null)
-                    SocketErrAccur.BeginInvoke("ConnectCallback Err:" + e.Message, null, this);
+                    SocketErrAccur.BeginInvoke(2, LogLevel.Warning, "ConnectCallback Err:" + e.Message, null, this);
             }
         }
         private void Send(Socket handler, String data)
@@ -237,7 +221,7 @@ namespace ShellForPlink
             catch (Exception e)
             {
                 if (this.SocketErrAccur != null)
-                    SocketErrAccur.BeginInvoke("SendCallback Err:" + e.Message, null, this);
+                    SocketErrAccur.BeginInvoke(2, LogLevel.Warning, "SendCallback Err:" + e.Message, null, this);
             }
         }
         
@@ -268,13 +252,13 @@ namespace ShellForPlink
         }
         private void AcceptLoopStopCallBack(IAsyncResult ar)
         {
-            //if (this.SocketErrAccur != null)
-            //    SocketErrAccur.BeginInvoke("AcceptLoopStopCallBack", null, this);
+            if (this.SocketErrAccur != null)
+                SocketErrAccur.BeginInvoke(2, LogLevel.Detail, "AcceptLoopStopCallBack", null, this);
         }
         private void DoAcceptLoop(Socket listen)
         {
             if (this.SocketErrAccur != null)
-                SocketErrAccur.BeginInvoke("DoAcceptLoop", null, this);
+                SocketErrAccur.BeginInvoke(2, LogLevel.Warning, "DoAcceptLoop", null, this);
 
             while (this.bDoAcceptLoop)
             {
@@ -287,7 +271,7 @@ namespace ShellForPlink
                 catch (Exception e)
                 {
                     if (this.SocketErrAccur != null)
-                        SocketErrAccur.BeginInvoke("DoAcceptLoop Err:" + e.Message, null, this);
+                        SocketErrAccur.BeginInvoke(2, LogLevel.Warning, "DoAcceptLoop Err:" + e.Message, null, this);
                 }
                 finally
                 {
@@ -306,14 +290,14 @@ namespace ShellForPlink
                 Socket handler = listen.EndAccept(ar);
 
                 if (this.SocketErrAccur != null)
-                    SocketErrAccur.BeginInvoke("AcceptCallback：" + handler.RemoteEndPoint.ToString(), null, this);
+                    SocketErrAccur.BeginInvoke(2, LogLevel.Detail, "AcceptCallback：" + handler.RemoteEndPoint.ToString(), null, this);
 
                 Receive(handler);
             }
             catch (Exception e)
             {
                 if (this.SocketErrAccur != null)
-                    SocketErrAccur.BeginInvoke("AcceptCallback Err：" + e.Message, null, this);
+                    SocketErrAccur.BeginInvoke(2, LogLevel.Warning, "AcceptCallback Err：" + e.Message, null, this);
             }
         }
         private void Receive(Socket handler)
@@ -325,7 +309,7 @@ namespace ShellForPlink
                 state.Type = SocketObjType.Server;
 
                 if (this.SocketErrAccur != null)
-                    SocketErrAccur.BeginInvoke("Begin Receive", null, this);
+                    SocketErrAccur.BeginInvoke(2, LogLevel.Detail, "Begin Receive", null, this);
 
                 handler.ReceiveTimeout = 13 * 1000;
                 handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
@@ -334,7 +318,7 @@ namespace ShellForPlink
             catch (Exception e)
             {
                 if (this.SocketErrAccur != null)
-                    SocketErrAccur.BeginInvoke("Receive Err:" + e.Message, null, this);
+                    SocketErrAccur.BeginInvoke(2, LogLevel.Warning, "Receive Err:" + e.Message, null, this);
             }
         }
         private void ReceiveCallback(IAsyncResult ar)
@@ -356,7 +340,7 @@ namespace ShellForPlink
                     {
                         HasReceived = true;
                         if (this.SocketErrAccur != null)
-                            SocketErrAccur.BeginInvoke("ReceiveCallback data:" + content, null, this);
+                            SocketErrAccur.BeginInvoke(2, LogLevel.Detail, "ReceiveCallback data:" + this.PingData.ToString(), null, this);
                     }
                     handler.Shutdown(SocketShutdown.Receive);
                     handler.Close();
@@ -370,13 +354,28 @@ namespace ShellForPlink
                 }
                 else
                     if (this.SocketErrAccur != null)
-                        SocketErrAccur.BeginInvoke("ReceiveCallback No Data Received", null, this);
+                        SocketErrAccur.BeginInvoke(2, LogLevel.Warning, "ReceiveCallback No Data Received", null, this);
             }
             catch (Exception e)
             {
                 if (this.SocketErrAccur != null)
-                    SocketErrAccur.BeginInvoke("ReceiveCallback Err:" + e.Message, null, this);
+                    SocketErrAccur.BeginInvoke(2, LogLevel.Warning, "ReceiveCallback Err:" + e.Message, null, this);
             }
         }
+
+        private class StateObject
+        {
+            public SocketObjType Type;
+            public Socket workSocket = null;
+            public const int BufferSize = 256;
+            public byte[] buffer = new byte[BufferSize];
+            public StringBuilder sb = new StringBuilder();
+        }
+        private enum SocketObjType
+        {
+            Client,
+            Server
+        }
+    
     }
 }

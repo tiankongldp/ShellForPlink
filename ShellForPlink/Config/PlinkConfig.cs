@@ -19,7 +19,7 @@ namespace ShellForPlink
         private bool reConnAfterBreakField = false;
         private bool unLimitReConnField = false;
         private bool usePrivateKeyField = false;
-        private bool verboseOutputField = false;
+        private LogLevel LoglevelField = LogLevel.Normal;
         private bool loopBackPingField = true;
         private bool confirmBeforeExitField = true;
         private bool echoServicePingField = false;
@@ -30,7 +30,7 @@ namespace ShellForPlink
         private int reConnDelayField = 10;
         private int dynamicPortField = 1080;
         private int loopBackPingPortField = 7070;
-        private string additionalArgsField = "-N -ssh -2 -4";
+        private string additionalArgsField = "-v -N -ssh -2 -4";
         private List<PortForward> localForwardField = new List<PortForward>();
         private List<PortForward> remoteForwardField = new List<PortForward>();
 
@@ -59,6 +59,24 @@ namespace ShellForPlink
             get { return passwordField; }
             set { passwordField = value; }
         }
+        [XmlIgnore]
+        public string PasswordCrypt
+        {
+            get {
+                if (passwordField.Length == 0)
+                    return passwordField;
+                else
+                    return Encryption.Decrypt(passwordField);
+            }
+            set {
+                if ((value + "").Length == 0)
+                    passwordField = "";
+                else
+                {
+                    passwordField = Encryption.Encrypt(value);
+                }
+            }
+        }
         public bool AutoConnOnStart
         {
             get { return autoConnOnStartField; }
@@ -79,10 +97,10 @@ namespace ShellForPlink
             get { return usePrivateKeyField; }
             set { usePrivateKeyField = value; }
         }
-        public bool VerboseOutput
+        public LogLevel Loglevel
         {
-            get { return verboseOutputField; }
-            set { verboseOutputField = value; }
+            get { return LoglevelField; }
+            set { LoglevelField = value; }
         }
         public bool LoopBackPing
         {
@@ -166,7 +184,7 @@ namespace ShellForPlink
                     sbArgs.Append("-4 ");
                 //if (this.NoPrompt)
                 //    sbArgs.Append("-batch ");
-                if (this.VerboseOutput)
+                if (!this.AdditionalArgs.Contains("-v"))
                     sbArgs.Append("-v ");
                 if (this.Compress)
                     sbArgs.Append("-C ");
